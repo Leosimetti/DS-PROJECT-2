@@ -51,7 +51,7 @@ class WelcomeSocket(Thread):
         while True:
             data, addr = self.sock.recvfrom(1024)
             print(f"{data} : {addr}")
-            self.sock.sendto('Dayu IP', addr)
+            self.sock.sendto(b'Dayu IP', addr)
 
 def main():
     welcome_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

@@ -80,15 +80,15 @@ def find_batya():
     s.sendto(b'Dai IP', ('<broadcast>', 1337))
     data, addr = s.recvfrom(1024)
     print(f'Batya found: {addr}')
-    return data
+    return addr
 
 def main():
-    BATYA_IP = find_batya()
+    BATYA_ADDR = find_batya()
 
     #BATYA_IP = input("ENTER BATYA IP:")  # sys.argv[2]
     print("FINDING BATYA...")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((BATYA_IP, int(PORT)))
+    s.connect((BATYA_ADDR[0], int(PORT)))
     print("!!!Connected to BATYA!!!")
     Heart(s).start()
 
