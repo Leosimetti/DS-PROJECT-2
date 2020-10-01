@@ -4,11 +4,11 @@ docker-compose --compatibility up --build
 ```
 
 # Architectural diagrams
-# Should changes happen on-the-go?
+Should changes happen on-the-go?
 
-# Should there be a cli??
+Should there be a cli??
 
-# Should all files be downloaded to the client machine automatically?
+Should all files be downloaded to the client machine automatically?
 
 
 LEVA <--
