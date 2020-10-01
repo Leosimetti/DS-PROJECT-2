@@ -14,10 +14,10 @@ import os
 import re
 from time import sleep
 
-
 SONS = []
-BUFF = 72 # Unified constant
+BUFF = 72  # Unified constant
 PORT = 1488
+
 
 # Thread to listen one particular client
 class HeartListener(Thread):
@@ -33,47 +33,32 @@ class HeartListener(Thread):
         print(self.name + ' ded')
 
     def run(self):
-
-        # Unpack the metadata that goes as the first package
-        # received = self.sock.recv(BUFF).decode()
-        # filename, filesize = received.split("?CON?")
-        #
-        # print(f"[{self.name}] Starting transfer of {filename}")
-        #
-        # # Make the data actually useful
-        # filename = os.path.basename(filename)
-        # filesize = int(filesize)
-        #
-        # # Counter initialization
-        # sas = 0.0
-
-        # Receive/Write
-
         try:
             while self.sock.recv(BUFF):
                 print(f' {self.name} IS ALIVE!!!!!!! ')
                 sleep(2)
         except ConnectionResetError:
             print("BLYA, SON ZDOX")
-
-        # with open(filename, "wb") as f:
-        #
-        #     for i in range(filesize):
-        #         # Will return zero when done
-        #         rcv = self.sock.recv(BUFF)
-        #         if rcv:
-        #             # Write received data
-        #             sas += BUFF
-        #             f.write(rcv)
-        #         else:
-        #             print(f"[{self.name}] Transfer complete!!")
-        #             break
         self._close()
 
 
-def main():
-    next_name = 1
+class WelcomeSocket(Thread):
+    def __init__(self, sock: socket.socket):
+        super().__init__(daemon=True)
+        self.sock = sock
 
+    def run(self):
+        while True:
+            data, addr = self.sock.recvfrom(1024)
+            print(f"{data} : {addr}")
+            self.sock.sendto(socket.gethostbyname(socket.gethostname()).encode(), addr)
+
+def main():
+    welcome_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    welcome_sock.bind(("", 1337))
+    WelcomeSocket(welcome_sock).start()
+
+    next_name = 1
     # AF_INET – IPv4, SOCK_STREAM – TCP
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # reuse address; in OS address will be reserved after app closed for a while
@@ -96,6 +81,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-

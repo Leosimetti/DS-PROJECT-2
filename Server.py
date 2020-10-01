@@ -28,6 +28,7 @@ class Heart(Thread):
             print("ALIVE!!!!!!!!")
             sleep(1.5)
 
+
 # Thread to listen one particular client
 # class ClientListener(Thread):
 #     def __init__(self, name: str, sock: socket.socket):
@@ -72,33 +73,24 @@ class Heart(Thread):
 #                     break
 #         self._close()
 
+def find_batya():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    s.sendto(b'Dai IP', ('<broadcast>', 1337))
+    batya = s.recv(1024)
+    print(batya)
+    return batya
 
 def main():
-    next_name = 1
+    BATYA_IP = find_batya()
 
-    # Contact batya
-    BATYA_IP = input("ENTER BATYA IP:")  # sys.argv[2]
+    #BATYA_IP = input("ENTER BATYA IP:")  # sys.argv[2]
     print("FINDING BATYA...")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((BATYA_IP, int(PORT)))
     print("!!!Connected to BATYA!!!")
     Heart(s).start()
-
-    # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    #
-    # sock.bind((BATYA_IP, PORT))
-    # sock.listen()
-    # print("FINDING BATYA...")
-    # while True:
-    #     # blocking call, waiting for new client to connect
-    #     con, addr = sock.accept()
-    #     clients.append(con)
-    #     name = 'u' + str(next_name)
-    #     next_name += 1
-    #     print(f"[{name}] " + str(addr) + ' connected')
-    #     # start new thread to deal with client
-    #     ClientListener(name, con).start()
 
 
 if __name__ == "__main__":
