@@ -1,0 +1,14 @@
+version: '3'
+services:
+    server:
+        build:
+            context: ./
+            dockerfile: Dockerfile
+        depends_on:
+            - nameserver
+        deploy:
+            replicas: 4
+    nameserver:
+        build:
+            context: ./
+            dockerfile: Dockerfile2

@@ -1,9 +1,10 @@
 # Documentation how to launch and use the system
-USE BRAIN
+```shell
+docker-compose --compatibility up
+```
 
 # Architectural diagrams
 LEVA <--
-
 
 --> PRAVA
 
