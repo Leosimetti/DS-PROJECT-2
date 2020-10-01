@@ -24,8 +24,8 @@ class Heart(Thread):
 
     def run(self):
         while True:
+            self.sock.send("ALIVE".encode())
             print("ALIVE!!!!!!!!")
-            self.sock.sendall("ALIVE".encode())
             sleep(1.5)
 
 # Thread to listen one particular client
@@ -79,7 +79,7 @@ def main():
     # Contact batya
     BATYA_IP = input("ENTER BATYA IP:")  # sys.argv[2]
     print("FINDING BATYA...")
-    s = socket.socket()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((BATYA_IP, int(PORT)))
     print("!!!Connected to BATYA!!!")
     Heart(s).start()
@@ -103,3 +103,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    while True:
+        pass

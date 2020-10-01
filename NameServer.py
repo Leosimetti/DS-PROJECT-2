@@ -16,7 +16,7 @@ from time import sleep
 
 
 SONS = []
-BUFF = 1488 # Unified constant
+BUFF = 72 # Unified constant
 PORT = 1488
 
 # Thread to listen one particular client
@@ -30,7 +30,7 @@ class HeartListener(Thread):
     def _close(self):
         SONS.remove(self.sock)
         self.sock.close()
-        print(self.name + ' dead')
+        print(self.name + ' ded')
 
     def run(self):
 
@@ -49,9 +49,12 @@ class HeartListener(Thread):
 
         # Receive/Write
 
-        while self.sock.recv(BUFF):
-            print(f' {self.name} IS ALIVE!!!!!!! ')
-            sleep(2)
+        try:
+            while self.sock.recv(BUFF):
+                print(f' {self.name} IS ALIVE!!!!!!! ')
+                sleep(2)
+        except ConnectionResetError:
+            print("BLYA, SON ZDOX")
 
         # with open(filename, "wb") as f:
         #
