@@ -9,7 +9,7 @@ LEVA <--
 GOVORYAT PO-RUSSKI
 
 # Provable contribution of each team member
-## list of goo bois
+## list of good bois
 
 1. VItaliy
 2. RUSLAN
