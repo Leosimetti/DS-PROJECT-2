@@ -1,6 +1,6 @@
 # Documentation how to launch and use the system
 ```shell
-docker-compose --compatibility up
+docker-compose --compatibility up --build
 ```
 
 # Architectural diagrams
@@ -9,10 +9,16 @@ LEVA <--
 --> PRAVA
 
 # Description of communication protocols
-GOVORYAT PO-RUSSKI
+Ports:
+
+1337 --> welcome
+
+1488 --> Server to Nameserver
+
+6969 --> For clients
 
 # Provable contribution of each team member
-## list of good bois
+### list of good bois
 
 1. VItaliy
 2. RUSLAN
