@@ -2,7 +2,7 @@ version: '3'
 services:
     server:
         build:
-            context: ./
+            context: ./Server
             dockerfile: Dockerfile
         depends_on:
             - nameserver
@@ -10,11 +10,11 @@ services:
             replicas: 2
     nameserver:
         build:
-            context: ./
-            dockerfile: Dockerfile2
+            context: ./Nameserver
+            dockerfile: Dockerfile
     client:
         build:
-            context: ./
-            dockerfile: Dockerfile3
+            context: ./Client
+            dockerfile: Dockerfile
         depends_on:
             - server
