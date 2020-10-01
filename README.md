@@ -3,6 +3,8 @@ USE BRAIN
 
 # Architectural diagrams
 LEVA <--
+
+
 --> PRAVA
 
 # Description of communication protocols
