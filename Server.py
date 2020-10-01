@@ -78,9 +78,9 @@ def find_batya():
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     s.sendto(b'Dai IP', ('<broadcast>', 1337))
-    batya = s.recv(1024)
-    print(batya)
-    return batya
+    data, addr = s.recvfrom(1024)
+    print(f'Batya found: {addr}')
+    return data
 
 def main():
     BATYA_IP = find_batya()
