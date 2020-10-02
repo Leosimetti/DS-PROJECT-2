@@ -26,6 +26,7 @@ filesDict = {}
 storageServersFiles = {}
 
 REPLICAS = 1
+Delimiter = "?CON?"
 
 
 class FileInfo:
@@ -51,6 +52,9 @@ class FileInfo:
     def __str__(self):
         return f"FileName: {self.fileName}, FileSize: {self.fileSize}, FilePath: {self.filePath}"
 
+    def dump(self):
+        return f"{self.fileName}{Delimiter}{self.fileSize}{Delimiter}{self.filePath}".encode()
+
 
 def receive_file(fileInfo: FileInfo, file, clientInfo):
     servers = random.sample(SONS, REPLICAS)
@@ -61,7 +65,7 @@ def receive_file(fileInfo: FileInfo, file, clientInfo):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.connect((server, CMND_PORT))
         storageServersFiles[server] = fileInfo
-        sock.send(b'receive?CON?')
+        sock.send(b'receive?CON?' + fileInfo.dump())
         sock.send(file)
 
 
@@ -76,7 +80,7 @@ def create_file(fileName: str, filePath: str):
         sock.connect((server, CMND_PORT))
         print(f"Creation of {newFile}")
         storageServersFiles[server] = newFile
-        sock.send(b'create?CON?')
+        sock.send(b'create?CON?' + newFile.dump())
 
 
 def send_file(fileInfo: FileInfo, clientInfo):
@@ -85,7 +89,7 @@ def send_file(fileInfo: FileInfo, clientInfo):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.connect((server, CMND_PORT))
-    sock.send(b'send?CON?')
+    sock.send(b'send?CON?' + fileInfo.dump())
 
 
 def get_fileInfo(fileInfo: FileInfo):
@@ -101,7 +105,7 @@ def copy_file(fileInfo: FileInfo, newFileInfo: FileInfo):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.connect((server, CMND_PORT))
         storageServersFiles[server] = newFileInfo
-        sock.send(b'copy?CON?')
+        sock.send(b'copy?CON?' + fileInfo.dump() + b'?CON?' + newFileInfo.dump())
 
 
 # Thread to listen one particular client
