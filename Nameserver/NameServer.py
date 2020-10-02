@@ -178,35 +178,40 @@ class Backend(Thread):
 class ClientMessaging(Thread):
     def __init__(self, name: str, sock: socket.socket, ip):
         super().__init__(daemon=True)
+        self.name = name
         self.sock = sock
         self.name = name
         self.ip = ip
 
     def run(self):
-        msg = self.sock.recv(BUFF)
-        arr = msg.decode().split(Delimiter)
-        cmd_type, meta_data = arr[0], arr[1:]
-        print(f"New request: {cmd_type}, metadata: {meta_data}")
-        if cmd_type == "copy":
-            fileName, _, filePath, newFileName, _, newFilePath = meta_data
-            fileInfo = FileInfo(fileName, 0, filePath)
-            newFileInfo = FileInfo(newFileName, 0, newFilePath)
-            copy_file(fileInfo, newFileInfo)
-        elif cmd_type == "receive":
-            fileName, fileSize, filePath = meta_data
-            fileInfo = FileInfo(fileName, int(fileSize), filePath)
-            receive_file(fileInfo, self.ip)
-        elif cmd_type == "send":
-            fileName, _, filePath = meta_data
-            fileInfo = FileInfo(fileName, 0, filePath)
-            send_file(fileInfo, self.ip)
-        elif cmd_type == "create":
-            fileName, _, filePath = meta_data
-            fileInfo = FileInfo(fileName, 0, filePath)
-            create_file(fileInfo)
-        else:
-            print(" CHORT, TI SHTO ZAPRASHIVAESH, AAAAAAAAAA?")
-        
+        while True:
+            msg = self.sock.recv(BUFF)
+            if msg == b'':
+                sleep(1)
+                continue
+            arr = msg.decode().split(Delimiter)
+            cmd_type, meta_data = arr[0], arr[1:]
+            print(f"New request: {cmd_type}, metadata: {meta_data}")
+            if cmd_type == "copy":
+                fileName, _, filePath, newFileName, _, newFilePath = meta_data
+                fileInfo = FileInfo(fileName, 0, filePath)
+                newFileInfo = FileInfo(newFileName, 0, newFilePath)
+                copy_file(fileInfo, newFileInfo)
+            elif cmd_type == "receive":
+                fileName, fileSize, filePath = meta_data
+                fileInfo = FileInfo(fileName, int(fileSize), filePath)
+                receive_file(fileInfo, self.ip)
+            elif cmd_type == "send":
+                fileName, _, filePath = meta_data
+                fileInfo = FileInfo(fileName, 0, filePath)
+                send_file(fileInfo, self.ip)
+            elif cmd_type == "create":
+                fileName, _, filePath = meta_data
+                fileInfo = FileInfo(fileName, 0, filePath)
+                create_file(fileInfo)
+            else:
+                print(" CHORT, TI SHTO ZAPRASHIVAESH, AAAAAAAAAA?")
+
 def main():
     welcome_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     welcome_sock.bind(("", 1337))
@@ -230,8 +235,8 @@ def main():
         name = 'Client ' + str(next_name)
         next_name += 1
         print(f"{name} " + str(addr) + ' WAS FOUND!!!')
+        ClientMessaging(name, con, addr[0]).start()
         # start new thread to deal with client
-
     while True:
         pass
 
