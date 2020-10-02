@@ -12,4 +12,4 @@ COPY ./ /app/
 EXPOSE 1488
 EXPOSE 1337
 
-CMD python3 Server.py
+CMD ["python3","-u","Server.py"]

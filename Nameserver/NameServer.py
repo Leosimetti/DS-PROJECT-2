@@ -25,7 +25,7 @@ CMND_PORT = 2280
 filesDict = {}
 storageServersFiles = {}
 
-REPLICAS = 1
+REPLICAS = 2
 Delimiter = "?CON?"
 
 
@@ -164,16 +164,16 @@ class Backend(Thread):
             # start new thread to deal with client
             HeartListener(name, con, addr[0]).start()
 
-            create_file("NUDES", "aaa")
-            copy_file(FileInfo("NUDES", 0, "1488"), FileInfo("NOT_NUDES", 0, "1488"))
-            # create_file("NUDES")
-            # create_file("NUDES")
-            # create_file("SA")
-            # create_file("vdav")
-            # create_file("asv")
-            # create_file("NUDES")
-            # create_file("AS")
-            # create_file("NUDES")
+            # create_file("NUDES", "aaa")
+            # # copy_file(FileInfo("NUDES", 0, "1488"), FileInfo("NOT_NUDES", 0, "1488"))
+            # # create_file("NUDES")
+            # # create_file("NUDES")
+            # # create_file("SA")
+            # # create_file("vdav")
+            # # create_file("asv")
+            # # create_file("NUDES")
+            # # create_file("AS")
+            # # create_file("NUDES")
 
 
 def main():

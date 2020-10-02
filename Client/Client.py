@@ -4,7 +4,7 @@
 import os
 import socket
 import sys
-
+from time import sleep
 
 BUFF = 1488
 PORT = 6969
@@ -30,6 +30,13 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    while True:
+        print("ZHIVU PERZHU")
+        sleep(200)
+        print("ZHIVU DOZHIVAYU")
+        sleep(200)
+        print("STAL DEDOM")
 
 
 # if len(sys.argv) != 4:

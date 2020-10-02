@@ -12,5 +12,4 @@ COPY ./ /app/
 EXPOSE 6969
 
 
-# IF YOU GET BUGS BECAUSE OF THIS localhost --> YOU ARE RETARD
-CMD ["python3","-u","Client.py", "localhost"]
+CMD ["python3","-u","Client.py"]
