@@ -11,5 +11,5 @@ COPY ./ /app/
 # Specify port that could(!) be opened from container later
 EXPOSE 6969
 
-
-CMD ["python3","-u","Client.py"]
+#HEHEHEHEHE
+#CMD ["python3","-u","Client.py"]

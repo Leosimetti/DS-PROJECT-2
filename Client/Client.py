@@ -9,6 +9,7 @@ from time import sleep
 BUFF = 1488
 PORT = 6969
 
+
 def find_batya():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -19,67 +20,102 @@ def find_batya():
     return addr
 
 
-def main():
+def init():
+    pass  # . Initialize the client storage on a new system, should remove any existing file in the dfs root directory and return available size.
 
+
+def create():
+    pass  # . Should allow to create a new empty file.
+
+
+def read():
+    pass  # . Should allow to read any file from DFS (download a file from the DFS to the Client side).
+
+
+def write(soc, filename):
+    """
+    sas.py write sasamba.txt
+    """
+    # TODO IMPLEMENT REALITVE LOCATION!!!!
+    size = os.path.getsize(filename)
+
+    # Send metadata first
+    msg = filename + "?CON?" + str(size)
+    soc.send(msg.encode())
+
+
+    # Read/Send loop
+    sas = 0
+    with open(filename, "rb") as f:
+        for i in range(size):
+            snd = f.read(BUFF)
+            if snd:
+
+                sas += BUFF
+                soc.sendall(snd)
+            else:
+                print("Transfer complete!!")
+                break
+
+
+def delete():
+    pass  # . Should allow to delete any file from DFS
+
+
+def info():
+    pass  # . Should provide information about the file (any useful information - size, node id, etc.)
+
+
+def copy():
+    pass  # . Should allow to create a copy of file.
+
+
+def move():
+    pass  # ". Should allow to move a file to the specified path.
+
+
+def open_dir():
+    pass  # . Should allow to change directory
+
+
+def read_dir():
+    pass  # . Should return list of files, which are stored in the directory.
+
+
+def make_dir():
+    pass  # . Should allow to create a new directory.
+
+
+def del_dir():
+    pass  # . Should allow to delete directory.  If the directory contains files the system should ask for confirmation from the user before deletion.
+
+
+def main():
     print("FINDING SERVER...")
-    BATYA_IP = find_batya()[0]#input("ENTER BATYA IP:")
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((BATYA_IP, int(PORT)))
+    BATYA_IP = find_batya()[0]  # input("ENTER BATYA IP:")
+    soc = socket.socket()  # socket.AF_INET, socket.SOCK_STREAM)
+    soc.connect((BATYA_IP, int(PORT)))
     print("Connected to Nameserver...")
+
+    cmd = sys.argv[1]
+
+    if cmd == "write":
+        write(soc, sys.argv[2])
+
+    # Cleanup
+    soc.close()
 
 
 if __name__ == "__main__":
     main()
 
     while True:
+        print("RODILSYA")
+        sleep(10)
         print("ZHIVU PERZHU")
         sleep(200)
         print("ZHIVU DOZHIVAYU")
         sleep(200)
         print("STAL DEDOM")
-
-
-# if len(sys.argv) != 4:
-#     print("Wrong arguments!")
-#     exit(228)
-#
-# name = sys.argv[1]
-# SERV_IP = sys.argv[2]
-# SERV_PORT = sys.argv[3]
-#
-# size = os.path.getsize(name)
-# print("Trying to connect to", SERV_IP + ":"+ SERV_PORT)
-#
-# # create the client socket
-# s = socket.socket()
-# s.connect((SERV_IP, int(SERV_PORT)))
-# print("!!!Connected to server!!!")  # if it is not displayed ==> OOF
-#
-# # Send them together, so that they do not get lost :)
-# msg = name + "?CON?" + str(size)
-# s.send(msg.encode())
-#
-# # Counter initialization
-# sas = 0
-# pr_digit = '0'
-#
-# # Read/Send
-# with open(name, "rb") as f:
-#     for i in range(size):
-#         snd = f.read(BUFF)
-#         if snd:
-#
-#             # To make output less annoying
-#             # msg = str(round(sas / float(size) * 100))
-#             # if pr_digit != msg[0] and round(sas / float(size) * 100) > 9:
-#             #     print(msg, " %")
-#             #     pr_digit = msg[0]
-#
-#             sas += BUFF
-#             s.sendall(snd)
-#         else:
-#             print("Transfer complete!!")
-#             break
-#
-# # Cleanup
-# s.close()
+        sleep(10)
+        print("TENSEI !!!!")
