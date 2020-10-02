@@ -32,8 +32,8 @@ Delimiter = "?CON?"
 class FileInfo:
     def __init__(self, fileName: str, fileSize: int, filePath: str):
         self.serverContainers = set()
-        self.fileSize = fileSize
         self.fileName = fileName
+        self.fileSize = fileSize
         self.filePath = filePath
 
     def addContainer(self, serverIP):
@@ -56,7 +56,7 @@ class FileInfo:
         return f"{self.fileName}{Delimiter}{self.fileSize}{Delimiter}{self.filePath}".encode()
 
 
-def receive_file(fileInfo: FileInfo, file, clientInfo):
+def receive_file(fileInfo: FileInfo, clientIP):
     servers = random.sample(SONS, REPLICAS)
     fileInfo.addContainers(servers)
     filesDict[fileInfo.fileName] = fileInfo
@@ -66,24 +66,22 @@ def receive_file(fileInfo: FileInfo, file, clientInfo):
         sock.connect((server, CMND_PORT))
         storageServersFiles[server] = fileInfo
         sock.send(b'receive?CON?' + fileInfo.dump())
-        sock.send(file)
 
 
-def create_file(fileName: str, filePath: str):
+def create_file(fileInfo: FileInfo):
     servers = random.sample(SONS, REPLICAS)
-    newFile = FileInfo(fileName, 0, filePath)
-    newFile.addContainers(servers)
-    filesDict[newFile.fileName] = newFile
+    fileInfo.addContainers(servers)
+    filesDict[fileInfo.fileName] = fileInfo
     for server in servers:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.connect((server, CMND_PORT))
-        print(f"Creation of {newFile}")
-        storageServersFiles[server] = newFile
-        sock.send(b'create?CON?' + newFile.dump())
+        print(f"Creation of {fileInfo}")
+        storageServersFiles[server] = fileInfo
+        sock.send(b'create?CON?' + fileInfo.dump())
 
 
-def send_file(fileInfo: FileInfo, clientInfo):
+def send_file(fileInfo: FileInfo, clientIP):
     servers = filesDict[fileInfo.fileName].serverContainers
     server = random.sample(servers)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -92,11 +90,13 @@ def send_file(fileInfo: FileInfo, clientInfo):
     sock.send(b'send?CON?' + fileInfo.dump())
 
 
-def get_fileInfo(fileInfo: FileInfo):
-    pass
+def get_fileInfo(fileName: str, clientIP):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.connect((fileName, CMND_PORT))
+    sock.send(filesDict[fileName])
 
 
-# How to translate replicas?
 def copy_file(fileInfo: FileInfo, newFileInfo: FileInfo):
     servers = filesDict[fileInfo.fileName].serverContainers
     newFileInfo.addContainers(servers)
@@ -175,7 +175,38 @@ class Backend(Thread):
             # # create_file("AS")
             # # create_file("NUDES")
 
+class ClientMessaging(Thread):
+    def __init__(self, name: str, sock: socket.socket, ip):
+        super().__init__(daemon=True)
+        self.sock = sock
+        self.name = name
+        self.ip = ip
 
+    def run(self):
+        msg = self.sock.recv(BUFF)
+        arr = msg.decode().split(Delimiter)
+        cmd_type, meta_data = arr[0], arr[1:]
+        print(f"New request: {cmd_type}, metadata: {meta_data}")
+        if cmd_type == "copy":
+            fileName, _, filePath, newFileName, _, newFilePath = meta_data
+            fileInfo = FileInfo(fileName, 0, filePath)
+            newFileInfo = FileInfo(newFileName, 0, newFilePath)
+            copy_file(fileInfo, newFileInfo)
+        elif cmd_type == "receive":
+            fileName, fileSize, filePath = meta_data
+            fileInfo = FileInfo(fileName, int(fileSize), filePath)
+            receive_file(fileInfo, self.ip)
+        elif cmd_type == "send":
+            fileName, _, filePath = meta_data
+            fileInfo = FileInfo(fileName, 0, filePath)
+            send_file(fileInfo, self.ip)
+        elif cmd_type == "create":
+            fileName, _, filePath = meta_data
+            fileInfo = FileInfo(fileName, 0, filePath)
+            create_file(fileInfo)
+        else:
+            print(" CHORT, TI SHTO ZAPRASHIVAESH, AAAAAAAAAA?")
+        
 def main():
     welcome_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     welcome_sock.bind(("", 1337))
