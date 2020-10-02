@@ -85,10 +85,10 @@ class ProcessRequest(Thread):
 
         if cmd_type == "copy":
             self.copy(meta_data)
-        elif cmd_type == "receive":
+        elif cmd_type == "write":
             print(f"rcv {meta_data}")
             # SVYAZAZA S CLIENTOM
-        elif cmd_type == "send":
+        elif cmd_type == "read":
             print(f"send {meta_data}")
         elif cmd_type == "create":
             self.create(meta_data)

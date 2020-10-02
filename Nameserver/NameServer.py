@@ -56,7 +56,7 @@ class FileInfo:
         return f"{self.fileName}{Delimiter}{self.fileSize}{Delimiter}{self.filePath}".encode()
 
 
-def receive_file(fileInfo: FileInfo, clientIP):
+def write_file(fileInfo: FileInfo, clientIP):
     servers = random.sample(SONS, REPLICAS)
     fileInfo.addContainers(servers)
     filesDict[fileInfo.fileName] = fileInfo
@@ -65,7 +65,7 @@ def receive_file(fileInfo: FileInfo, clientIP):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.connect((server, CMND_PORT))
         storageServersFiles[server] = fileInfo
-        sock.send(b'receive?CON?' + fileInfo.dump())
+        sock.send(b'write?CON?' + fileInfo.dump())
 
 
 def create_file(fileInfo: FileInfo):
@@ -81,16 +81,16 @@ def create_file(fileInfo: FileInfo):
         sock.send(b'create?CON?' + fileInfo.dump())
 
 
-def send_file(fileInfo: FileInfo, clientIP):
+def read_file(fileInfo: FileInfo, clientIP):
     servers = filesDict[fileInfo.fileName].serverContainers
     server = random.sample(servers)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.connect((server, CMND_PORT))
-    sock.send(b'send?CON?' + fileInfo.dump())
+    sock.send(b'read?CON?' + fileInfo.dump())
 
 
-def get_fileInfo(fileName: str, clientIP):
+def info_file(fileName: str, clientIP):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.connect((fileName, CMND_PORT))
@@ -200,11 +200,11 @@ class ClientMessaging(Thread):
             elif cmd_type == "receive":
                 fileName, fileSize, filePath = meta_data
                 fileInfo = FileInfo(fileName, int(fileSize), filePath)
-                receive_file(fileInfo, self.ip)
+                write_file(fileInfo, self.ip)
             elif cmd_type == "send":
                 fileName, _, filePath = meta_data
                 fileInfo = FileInfo(fileName, 0, filePath)
-                send_file(fileInfo, self.ip)
+                read_file(fileInfo, self.ip)
             elif cmd_type == "create":
                 fileName, _, filePath = meta_data
                 fileInfo = FileInfo(fileName, 0, filePath)
@@ -239,7 +239,6 @@ def main():
         # start new thread to deal with client
     while True:
         pass
-
 
 if __name__ == "__main__":
     main()
