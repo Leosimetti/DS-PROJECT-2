@@ -83,14 +83,15 @@ class StorageServerDemon:
 
 # Thread to listen one particular client
 class HeartListener(Thread):
-    def __init__(self, name: str, sock: socket.socket):
+    def __init__(self, name: str, sock: socket.socket, ip):
         super().__init__(daemon=True)
         self.sock = sock
         self.name = name
+        self.ip = ip
 
     # clean up
     def _close(self):
-        SONS.remove(self.sock)
+        SONS.remove(self.ip)
         self.sock.close()
         print(self.name + ' ded')
 
@@ -134,7 +135,7 @@ class Backend(Thread):
             next_name += 1
             print(f"{name} " + str(addr) + ' WAS FOUND!!!')
             # start new thread to deal with client
-            HeartListener(name, con).start()
+            HeartListener(name, con, addr[0]).start()
 
 
 def main():
