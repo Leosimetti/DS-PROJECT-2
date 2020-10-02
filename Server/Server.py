@@ -5,6 +5,7 @@ import os
 from time import sleep
 
 PORT = 1488
+CMND_PORT = 2280
 # Stores files
 
 # Gives access to files
@@ -71,17 +72,28 @@ def main():
 
     # BATYA_IP = input("ENTER BATYA IP:")  # sys.argv[2]
     print("FINDING BATYA...")
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((BATYA_ADDR[0], int(PORT)))
+    h = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    h.connect((BATYA_ADDR[0], int(PORT)))
     print("!!!🍆🍆🍆🍆🍆🍆🍆 Connected to BATYA 🍆🍆🍆🍆🍆🍆🍆!!!")
-    Heart(s).start()
+    Heart(h).start()
+
+    # For the clients
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # reuse address; in OS address will be reserved after app closed for a while
+    # so if we close and imidiatly start server again – we'll get error
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    # listen to all interfaces at 8800 port
+    sock.bind(('', CMND_PORT))
+    sock.listen()
+    # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # s.connect((BATYA_ADDR[0], int(PORT)))
 
     requests = []
     next_name = 1
     print("Waiting for Requests from BATYA...")
     while True:
-        # blocking call, waiting for new client to connect
-        con, addr = s.accept()
+        # blocking call, waiting for new request to arrive
+        con, addr = sock.accept()
         requests.append(con)
         name = 'Req ' + str(next_name)
         next_name += 1

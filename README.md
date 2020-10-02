@@ -24,6 +24,8 @@ Ports:
 
 6969 --> For clients
 
+2280 --> NS to Server for file command
+
 # Provable contribution of each team member
 ### list of good bois
 
