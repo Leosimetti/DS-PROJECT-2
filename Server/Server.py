@@ -39,44 +39,49 @@ class ProcessRequest(Thread):
         print(f"Started processing request {self.name}")
 
     def create(self, filename):
+        filename = filename[0]
         print(f"create {filename}")
         filename = os.path.basename(filename)
         with open(filename, "wb") as f:
             pass
 
     def copy(self, metadata):
+        print(f"cpy {metadata}")
 
         filename = metadata[0]
-        newName  = metadata[1]
+        newName = metadata[3]
 
+        print(f"Got names {filename} and {newName}")
 
-        if os.path.exists( os.path.basename(filename) ):
-            print(f"cpy {filename}")
+        if os.path.exists(os.path.basename(filename)):
+
             original_name = os.path.basename(filename)
 
-            filename = newName
             # add 'copy' part
-            filename_parts = filename.split('.')
-            filename = ""
-            for part in filename_parts[:-1]:
-                filename = filename + "." + part
-            filename = filename[1:] + "_copy"
+            while (os.path.isfile(newName)):
+                try:
+                    name, ext = newName.split(".")
+                except:
+                    name = newName
+                    ext = ""
+                if "_copy_" in name:
+                    init_name, copy_ind = name.split("_copy_")
+                    copy_ind = int(copy_ind) + 1
+                    name = init_name + "_copy_" + str(copy_ind)
+                else:
+                    name = name + "_copy_1"
+                newName = name + "." + ext
 
-            # check if such file exists and make another name
-            i = 1
-            while os.path.exists(filename + str(i) + "." + filename_parts[-1]):
-                i = i+1
-            filename = filename + str(i) + "." + filename_parts[-1]
-            filename = os.path.basename(filename)
-
-            shutil.copy2(original_name, filename)
+            shutil.copy2(original_name, newName)
         else:
             print("A TAKOGO FAILA NET!!!!!! CHTO COPIROVAT-TO?")
             exit(228)
 
     def run(self):
         received = self.sock.recv(BUFF).decode()
-        cmd_type, meta_data = received.split("?CON?")
+        arr = received.split("?CON?")
+
+        cmd_type, meta_data = arr[0], arr[1:]
 
         if cmd_type == "copy":
             self.copy(meta_data)

@@ -32,8 +32,8 @@ Delimiter = "?CON?"
 class FileInfo:
     def __init__(self, fileName: str, fileSize: int, filePath: str):
         self.serverContainers = set()
-        self.fileSize = fileName
-        self.fileName = fileSize
+        self.fileSize = fileSize
+        self.fileName = fileName
         self.filePath = filePath
 
     def addContainer(self, serverIP):
@@ -165,6 +165,7 @@ class Backend(Thread):
             HeartListener(name, con, addr[0]).start()
 
             create_file("NUDES", "aaa")
+            copy_file(FileInfo("NUDES", 0, "1488"), FileInfo("NOT_NUDES", 0, "1488"))
             # create_file("NUDES")
             # create_file("NUDES")
             # create_file("SA")
