@@ -21,66 +21,87 @@ BUFF = 72  # Unified constant
 PORT = 1488
 CLIENT_PORT = 6969
 CMND_PORT = 2280
-fileMap = {}
+
+filesDict = {}
 storageServersFiles = {}
+
 REPLICAS = 1
 
 
-# class StorageServerDemon:
+class FileInfo:
+    def __init__(self, fileName: str, fileSize: int, filePath: str):
+        self.serverContainers = set()
+        self.fileSize = fileName
+        self.fileName = fileSize
+        self.filePath = filePath
 
-def recieve_file( fileInfo, file, clientInfo):
+    def addContainer(self, serverIP):
+        self.serverContainers.add(serverIP)
+
+    def addContainers(self, serverIPs):
+        self.serverContainers.update(serverIPs)
+
+    def deleteContainer(self, serverIP):
+        self.serverContainers.remove(serverIP)
+
+    def correspondsTo(self, otherFileInfo):
+        if self.filePath == otherFileInfo.filePath and self.fileName == otherFileInfo.fileName:
+            return True
+
+    def __str__(self):
+        return f"FileName: {self.fileName}, FileSize: {self.fileSize}, FilePath: {self.filePath}"
+
+
+def receive_file(fileInfo: FileInfo, file, clientInfo):
     servers = random.sample(SONS, REPLICAS)
+    fileInfo.addContainers(servers)
+    filesDict[fileInfo.fileName] = fileInfo
     for server in servers:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.connect((server, CMND_PORT))
-        if fileInfo in fileMap:
-            fileMap[fileInfo].append(server)
-        else:
-            fileMap[fileInfo] = [server]
         storageServersFiles[server] = fileInfo
-        sock.send(b'receive?CON?' + fileInfo.encode() + b'?CON?' + clientInfo.encode())
+        sock.send(b'receive?CON?')
         sock.send(file)
 
-def create_file( fileInfo):
+
+def create_file(fileName: str, filePath: str):
     servers = random.sample(SONS, REPLICAS)
+    newFile = FileInfo(fileName, 0, filePath)
+    newFile.addContainers(servers)
+    filesDict[newFile.fileName] = newFile
     for server in servers:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.connect((server, CMND_PORT))
-        if fileInfo in fileMap:
-            fileMap[fileInfo].append(server)
-        else:
-            fileMap[fileInfo] = [server]
-        print(f"Creation of {fileInfo}")
-        storageServersFiles[server] = fileInfo
-        sock.send(b'create?CON?' + fileInfo.encode())
+        print(f"Creation of {newFile}")
+        storageServersFiles[server] = newFile
+        sock.send(b'create?CON?')
 
-def send_file( fileInfo, clientInfo):
-    servers = fileMap[fileInfo]
+
+def send_file(fileInfo: FileInfo, clientInfo):
+    servers = filesDict[fileInfo.fileName].serverContainers
     server = random.sample(servers)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.connect((server, CMND_PORT))
-    sock.send(b'send?CON?' + fileInfo.encode() + b'?CON?' + clientInfo.encode())
+    sock.send(b'send?CON?')
 
-def get_fileInfo(fileInfo):
+
+def get_fileInfo(fileInfo: FileInfo):
     pass
 
+
 # How to translate replicas?
-def copy_file( fileInfo, newFileInfo):
-    servers = fileMap[fileInfo]
+def copy_file(fileInfo: FileInfo, newFileInfo: FileInfo):
+    servers = filesDict[fileInfo.fileName].serverContainers
+    newFileInfo.addContainers(servers)
     for server in servers:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.connect((server, CMND_PORT))
-        if newFileInfo in fileMap:
-            fileMap[newFileInfo].append(server)
-        else:
-            fileMap[newFileInfo] = [server]
         storageServersFiles[server] = newFileInfo
-        sock.send(b'copy?CON?' + fileInfo.encode())
-
+        sock.send(b'copy?CON?')
 
 
 # Thread to listen one particular client
@@ -139,7 +160,7 @@ class Backend(Thread):
             # start new thread to deal with client
             HeartListener(name, con, addr[0]).start()
 
-            # create_file("NUDES")
+            create_file("NUDES", "aaa")
             # create_file("NUDES")
             # create_file("NUDES")
             # create_file("SA")
@@ -148,8 +169,6 @@ class Backend(Thread):
             # create_file("NUDES")
             # create_file("AS")
             # create_file("NUDES")
-
-
 
 
 def main():
