@@ -38,24 +38,28 @@ def write(soc, filename):
     """
     # TODO IMPLEMENT REALITVE LOCATION!!!!
     size = os.path.getsize(filename)
+    path = ""
 
     # Send metadata first
-    msg = filename + "?CON?" + str(size)
+    msg = "receive" + "?CON?" + filename + "?CON?" + str(size)+"?CON?"+ path
     soc.send(msg.encode())
 
+    # Wait for data about server
+
+    # Send to this server
 
     # Read/Send loop
-    sas = 0
-    with open(filename, "rb") as f:
-        for i in range(size):
-            snd = f.read(BUFF)
-            if snd:
-
-                sas += BUFF
-                soc.sendall(snd)
-            else:
-                print("Transfer complete!!")
-                break
+    # sas = 0
+    # with open(filename, "rb") as f:
+    #     for i in range(size):
+    #         snd = f.read(BUFF)
+    #         if snd:
+    #
+    #             sas += BUFF
+    #             soc.sendall(snd)
+    #         else:
+    #             print("Transfer complete!!")
+    #             break
 
 
 def delete():
@@ -113,9 +117,9 @@ if __name__ == "__main__":
         print("RODILSYA")
         sleep(10)
         print("ZHIVU PERZHU")
-        sleep(200)
+        sleep(60)
         print("ZHIVU DOZHIVAYU")
-        sleep(200)
+        sleep(60)
         print("STAL DEDOM")
         sleep(10)
         print("TENSEI !!!!")

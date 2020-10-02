@@ -25,7 +25,7 @@ CMND_PORT = 2280
 filesDict = {}
 storageServersFiles = {}
 
-REPLICAS = 2
+REPLICAS = 1
 Delimiter = "?CON?"
 
 
