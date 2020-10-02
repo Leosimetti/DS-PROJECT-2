@@ -41,12 +41,16 @@ class ProcessRequest(Thread):
         received = self.sock.recv(BUFF).decode()
         cmd_type, meta_data = received.split("?CON?")
 
-        if cmd_type == "":
-            pass
-        elif cmd_type == "" :
-            pass
+        if cmd_type == "copy":
+            print(f"cpy {meta_data}")
+        elif cmd_type == "receive":
+            print(f"rcv {meta_data}")
+        elif cmd_type == "send":
+            print(f"send {meta_data}")
+        elif cmd_type == "create":
+            print(f"create {meta_data}")
         else:
-            pass
+            print(" CHORT, TI SHTO ZAPRASHIVAESH, AAAAAAAAAA?")
 
 
 def find_batya():

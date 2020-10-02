@@ -7,7 +7,7 @@
 # Each file should be replicated on at least 2 Storage Servers.
 # If one of the Storage Server goes down, files, that is stored should be replicated to another Storage Server.
 
-# Choose the serv with the least load
+# Choose the serv with the least load?? Via heartbeat msgs containing Free space and # of requests
 
 import socket
 from threading import Thread
@@ -23,61 +23,63 @@ CLIENT_PORT = 6969
 CMND_PORT = 2280
 fileMap = {}
 storageServersFiles = {}
-REPLICAS = 3
+REPLICAS = 1
 
 
-class StorageServerDemon:
-    def recieve_file(self, fileInfo, file, clientInfo):
-        servers = random.sample(SONS, REPLICAS)
-        for server in servers:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.connect((server, CMND_PORT))
-            if fileInfo in fileMap:
-                fileMap[fileInfo].append(server)
-            else:
-                fileMap[fileInfo] = [server]
-            storageServersFiles[server] = fileInfo
-            sock.send(b'receive?CON?' + fileInfo.encode() + b'?CON?' + clientInfo.encode())
-            sock.send(file)
+# class StorageServerDemon:
 
-    def create_file(self, fileInfo):
-        servers = random.sample(SONS, REPLICAS)
-        for server in servers:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.connect((server, CMND_PORT))
-            if fileInfo in fileMap:
-                fileMap[fileInfo].append(server)
-            else:
-                fileMap[fileInfo] = [server]
-            storageServersFiles[server] = fileInfo
-            sock.send(b'create?CON?' + fileInfo.encode())
-
-    def send_file(self, fileInfo, clientInfo):
-        servers = fileMap[fileInfo]
-        server = random.sample(servers)
+def recieve_file( fileInfo, file, clientInfo):
+    servers = random.sample(SONS, REPLICAS)
+    for server in servers:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.connect((server, CMND_PORT))
-        sock.send(b'send?CON?' + fileInfo.encode() + b'?CON?' + clientInfo.encode())
+        if fileInfo in fileMap:
+            fileMap[fileInfo].append(server)
+        else:
+            fileMap[fileInfo] = [server]
+        storageServersFiles[server] = fileInfo
+        sock.send(b'receive?CON?' + fileInfo.encode() + b'?CON?' + clientInfo.encode())
+        sock.send(file)
 
-    def get_fileInfo(self, fileInfo):
-        pass
+def create_file( fileInfo):
+    servers = random.sample(SONS, REPLICAS)
+    for server in servers:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.connect((server, CMND_PORT))
+        if fileInfo in fileMap:
+            fileMap[fileInfo].append(server)
+        else:
+            fileMap[fileInfo] = [server]
+        print(f"Creation of {fileInfo}")
+        storageServersFiles[server] = fileInfo
+        sock.send(b'create?CON?' + fileInfo.encode())
 
-    # How to translate replicas?
-    def copy_file(self, fileInfo, newFileInfo):
-        servers = fileMap[fileInfo]
-        for server in servers:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.connect((server, CMND_PORT))
-            if newFileInfo in fileMap:
-                fileMap[newFileInfo].append(server)
-            else:
-                fileMap[newFileInfo] = [server]
-            storageServersFiles[server] = newFileInfo
-            sock.send(b'copy?CON?' + fileInfo.encode())
+def send_file( fileInfo, clientInfo):
+    servers = fileMap[fileInfo]
+    server = random.sample(servers)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.connect((server, CMND_PORT))
+    sock.send(b'send?CON?' + fileInfo.encode() + b'?CON?' + clientInfo.encode())
+
+def get_fileInfo(fileInfo):
+    pass
+
+# How to translate replicas?
+def copy_file( fileInfo, newFileInfo):
+    servers = fileMap[fileInfo]
+    for server in servers:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.connect((server, CMND_PORT))
+        if newFileInfo in fileMap:
+            fileMap[newFileInfo].append(server)
+        else:
+            fileMap[newFileInfo] = [server]
+        storageServersFiles[server] = newFileInfo
+        sock.send(b'copy?CON?' + fileInfo.encode())
 
 
 
@@ -136,6 +138,18 @@ class Backend(Thread):
             print(f"{name} " + str(addr) + ' WAS FOUND!!!')
             # start new thread to deal with client
             HeartListener(name, con, addr[0]).start()
+
+            # create_file("NUDES")
+            # create_file("NUDES")
+            # create_file("NUDES")
+            # create_file("SA")
+            # create_file("vdav")
+            # create_file("asv")
+            # create_file("NUDES")
+            # create_file("AS")
+            # create_file("NUDES")
+
+
 
 
 def main():
