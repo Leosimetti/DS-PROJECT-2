@@ -57,6 +57,7 @@ class FileInfo:
 
 
 def write_file(fileInfo: FileInfo, client_sock : socket.socket):
+def write_file(fileInfo: FileInfo, clientSocket: socket.socket):
     servers = random.sample(SONS, REPLICAS)
     fileInfo.addContainers(servers)
     filesDict[fileInfo.fileName] = fileInfo
@@ -84,6 +85,7 @@ def create_file(fileInfo: FileInfo):
 
 
 def read_file(fileInfo: FileInfo, clientIP):
+def read_file(fileInfo: FileInfo, clientSocket: socket.socket):
     servers = filesDict[fileInfo.fileName].serverContainers
     server = random.sample(servers)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -97,6 +99,8 @@ def info_file(fileName: str, clientIP):
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.connect((fileName, CMND_PORT))
     sock.send(filesDict[fileName])
+def info_file(fileName: str, clientSocket: socket.socket):
+    clientSocket.send(filesDict[fileName])
 
 
 def copy_file(fileInfo: FileInfo, newFileInfo: FileInfo):
