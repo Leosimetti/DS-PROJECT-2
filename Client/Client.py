@@ -45,8 +45,11 @@ def write(soc, filename):
     soc.send(msg.encode())
 
     # Wait for data about server
+    rcv1 = soc.recv(BUFF).decode()
+    rcv2 = soc.recv(BUFF).decode()
 
     # Send to this server
+    print(f"IPS are {rcv1} and {rcv2}")
 
     # Read/Send loop
     # sas = 0
@@ -101,11 +104,13 @@ def main():
     soc.connect((BATYA_IP, int(PORT)))
     print("Connected to Nameserver...")
 
-    cmd = sys.argv[1]
+    try:
+        cmd = sys.argv[1]
 
-    if cmd == "write":
-        write(soc, sys.argv[2])
-
+        if cmd == "write":
+            write(soc, sys.argv[2])
+    except:
+        pass
     # Cleanup
     soc.close()
 

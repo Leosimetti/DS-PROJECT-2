@@ -25,7 +25,7 @@ CMND_PORT = 2280
 filesDict = {}
 storageServersFiles = {}
 
-REPLICAS = 1
+REPLICAS = 2
 Delimiter = "?CON?"
 
 
@@ -56,7 +56,7 @@ class FileInfo:
         return f"{self.fileName}{Delimiter}{self.fileSize}{Delimiter}{self.filePath}".encode()
 
 
-def write_file(fileInfo: FileInfo, clientIP):
+def write_file(fileInfo: FileInfo, client_sock : socket.socket):
     servers = random.sample(SONS, REPLICAS)
     fileInfo.addContainers(servers)
     filesDict[fileInfo.fileName] = fileInfo
@@ -66,6 +66,8 @@ def write_file(fileInfo: FileInfo, clientIP):
         sock.connect((server, CMND_PORT))
         storageServersFiles[server] = fileInfo
         sock.send(b'write?CON?' + fileInfo.dump())
+    client_sock.send(servers[0].encode())
+    client_sock.send(servers[1].encode())
 
 
 def create_file(fileInfo: FileInfo):
@@ -200,7 +202,7 @@ class ClientMessaging(Thread):
             elif cmd_type == "receive":
                 fileName, fileSize, filePath = meta_data
                 fileInfo = FileInfo(fileName, int(fileSize), filePath)
-                write_file(fileInfo, self.ip)
+                write_file(fileInfo, self.sock)
             elif cmd_type == "send":
                 fileName, _, filePath = meta_data
                 fileInfo = FileInfo(fileName, 0, filePath)

@@ -76,7 +76,7 @@ class ProcessRequest(Thread):
         else:
             print("A TAKOGO FAILA NET!!!!!! CHTO COPIROVAT-TO?")
             exit(228)
-
+        
     def run(self):
         received = self.sock.recv(BUFF).decode()
         arr = received.split("?CON?")

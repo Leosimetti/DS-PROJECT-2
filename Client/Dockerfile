@@ -12,4 +12,4 @@ COPY ./ /app/
 EXPOSE 6969
 
 #HEHEHEHEHE
-#CMD ["python3","-u","Client.py"]
+CMD ["python3","-u","Client.py"]
