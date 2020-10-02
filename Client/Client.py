@@ -1,4 +1,4 @@
-# Provide some CLI???
+# TOLYA, SDELAY CLI TYT
 
 
 import os

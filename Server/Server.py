@@ -3,6 +3,7 @@ import socket
 from threading import Thread
 import os
 from time import sleep
+import shutil
 
 PORT = 1488
 CMND_PORT = 2280
@@ -37,18 +38,54 @@ class ProcessRequest(Thread):
         self.name = name
         print(f"Started processing request {self.name}")
 
+    def create(self, filename):
+        print(f"create {filename}")
+        filename = os.path.basename(filename)
+        with open(filename, "wb") as f:
+            pass
+
+    def copy(self, metadata):
+
+        filename = metadata[0]
+        newName  = metadata[1]
+
+
+        if os.path.exists( os.path.basename(filename) ):
+            print(f"cpy {filename}")
+            original_name = os.path.basename(filename)
+
+            filename = newName
+            # add 'copy' part
+            filename_parts = filename.split('.')
+            filename = ""
+            for part in filename_parts[:-1]:
+                filename = filename + "." + part
+            filename = filename[1:] + "_copy"
+
+            # check if such file exists and make another name
+            i = 1
+            while os.path.exists(filename + str(i) + "." + filename_parts[-1]):
+                i = i+1
+            filename = filename + str(i) + "." + filename_parts[-1]
+            filename = os.path.basename(filename)
+
+            shutil.copy2(original_name, filename)
+        else:
+            print("A TAKOGO FAILA NET!!!!!! CHTO COPIROVAT-TO?")
+            exit(228)
+
     def run(self):
         received = self.sock.recv(BUFF).decode()
         cmd_type, meta_data = received.split("?CON?")
 
         if cmd_type == "copy":
-            print(f"cpy {meta_data}")
+            self.copy(meta_data)
         elif cmd_type == "receive":
             print(f"rcv {meta_data}")
         elif cmd_type == "send":
             print(f"send {meta_data}")
         elif cmd_type == "create":
-            print(f"create {meta_data}")
+            self.create(meta_data)
         else:
             print(" CHORT, TI SHTO ZAPRASHIVAESH, AAAAAAAAAA?")
 
