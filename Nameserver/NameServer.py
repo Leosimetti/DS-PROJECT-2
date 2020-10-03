@@ -61,12 +61,15 @@ class FileInfo:
 
 class StorageDemon:
     def __init__(self):
-        #Dict {ServerIP:FileInfo}.
+        # Dict {ServerIP:[FileInfo-s]}.
         self.serversFiles = dict()
-        #Dict {(fileLocation):FileInfo}
+        # Dict {(fileLocation):FileInfo}
         self.fileDict = dict()
 
     def writeFile(self):
+        pass
+
+    def addFileToServer(self, fileInfo: FileInfo):
         pass
 
     def createFile(self, fileInfo: FileInfo):
@@ -93,7 +96,6 @@ class StorageDemon:
 
     def delFile(self, fileInfo: FileInfo):
         servers = self.fileDict[(fileInfo.fileName, fileInfo.filePath)]
-        pass
 
 
 class IPPropagator(Thread):
@@ -123,8 +125,11 @@ class HeartListener(Thread):
     def run(self):
         try:
             while self.sock.recv(BUFFER):
+                print("check")
                 sleep(3)
-        except ConnectionResetError:
+        except:
+            pass
+        finally:
             self.close()
 
 
@@ -200,7 +205,7 @@ class ServerWelcome(Thread):
 
 
 def main():
-    # UDP socket to meet new Storage Servers and provide them IP
+    # UDP socket to meet new connections and provide them IP
     IPPropagationSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     IPPropagationSocket.bind(("", SERVER_WELCOME_PORT))
     IPPropagator(IPPropagationSocket).start()
