@@ -11,5 +11,6 @@ COPY ./ /app/
 # Specify port that could(!) be opened from container later
 EXPOSE 1488
 EXPOSE 1337
+EXPOSE 6969
 
 CMD ["python3","-u","Server.py"]

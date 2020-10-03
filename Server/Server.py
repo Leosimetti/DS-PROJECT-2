@@ -7,6 +7,8 @@ import shutil
 
 PORT = 1488
 CMND_PORT = 2280
+CLIENT_PORT = 6969
+BUFF = 1488
 # Stores files
 
 # Gives access to files
@@ -76,7 +78,57 @@ class ProcessRequest(Thread):
         else:
             print("A TAKOGO FAILA NET!!!!!! CHTO COPIROVAT-TO?")
             exit(228)
-        
+
+    def write(self, meta_data):
+
+        print(f"rcv {meta_data}")
+
+        filename, filesize, path = meta_data
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # reuse address; in OS address will be reserved after app closed for a while
+        # so if we close and imidiatly start server again – we'll get error
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind(('', CLIENT_PORT))
+        sock.listen()
+
+        con, addr = sock.accept()
+
+        print("Accepted Client connection")
+
+        # Make the data actually useful
+        filename = os.path.basename(filename)
+        filesize = int(filesize)
+
+        # Counter initialization
+        sas = 0.0
+
+            # Receive/Write
+        # Download file
+        with open(filename, "wb") as server_file:
+            # Client end connection when file is downloaded from server
+            while True:
+                bytes_read = con.recv(BUFF)
+                if not bytes_read:
+                    break
+                server_file.write(bytes_read)
+
+        # with open(filename, "wb") as f:
+        #
+        #     for i in range(filesize):
+        #         # Will return zero when done
+        #         rcv = con.recv(BUFF)
+        #         if rcv:
+        #             print("Wrote bytes" + rcv.decode())
+        #             # Write received data
+        #             sas += BUFF
+        #             f.write(rcv)
+        #         else:
+        #             print("Transfer complete!!")
+        #             break
+        # con.close()
+
+
     def run(self):
         received = self.sock.recv(BUFF).decode()
         arr = received.split("?CON?")
@@ -86,8 +138,7 @@ class ProcessRequest(Thread):
         if cmd_type == "copy":
             self.copy(meta_data)
         elif cmd_type == "write":
-            print(f"rcv {meta_data}")
-            # SVYAZAZA S CLIENTOM
+            self.write(meta_data)
         elif cmd_type == "read":
             print(f"send {meta_data}")
         elif cmd_type == "create":

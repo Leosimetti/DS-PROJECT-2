@@ -6,6 +6,7 @@ import socket
 import sys
 from time import sleep
 
+
 BUFF = 1488
 PORT = 6969
 
@@ -40,29 +41,40 @@ def write(soc, filename):
     size = os.path.getsize(filename)
     path = ""
 
-    # Send metadata first
-    msg = "receive" + "?CON?" + filename + "?CON?" + str(size)+"?CON?"+ path
+    #Send metadata first
+    msg = "receive" + "?CON?" + filename + "?CON?" + str(size) + "?CON?" + path
     soc.send(msg.encode())
 
     # Wait for data about server
     rcv1 = soc.recv(BUFF).decode()
     rcv2 = soc.recv(BUFF).decode()
 
-    # Send to this server
-    print(f"IPS are {rcv1} and {rcv2}")
-
-    # Read/Send loop
-    # sas = 0
-    # with open(filename, "rb") as f:
-    #     for i in range(size):
-    #         snd = f.read(BUFF)
-    #         if snd:
+    # print(f"Gotta connect to {rcv1} and {rcv2}")
+    # # Send to this server
+    # soc1 = (socket.socket()).connect((rcv1, int(PORT)))
     #
-    #             sas += BUFF
-    #             soc.sendall(snd)
-    #         else:
-    #             print("Transfer complete!!")
-    #             break
+    # soc2 = (socket.socket()).connect((rcv2, int(PORT)))
+    #
+    # for soc in [soc1, soc2]:
+    #
+    #     with open(filename, "rb") as client_file:
+    #         for i in range(size):
+    #             bytes_read = client_file.read(BUFF)
+    #             if not bytes_read:
+    #                 break
+    #             soc.sendall(bytes_read)
+    #     # sas = 0
+    #     # with open(filename, "rb") as f:
+    #     #
+    #     #     for i in range(size):
+    #     #         snd = f.read(BUFF)
+    #     #         if snd:
+    #     #             print("Sent bytes")
+    #     #             sas += BUFF
+    #     #             soc.sendall(snd)
+    #     #         else:
+    #     #             print("Transfer complete!!")
+    #     #             break
 
 
 def delete():
@@ -98,6 +110,7 @@ def del_dir():
 
 
 def main():
+    sleep(2.5)
     print("FINDING SERVER...")
     BATYA_IP = find_batya()[0]  # input("ENTER BATYA IP:")
     soc = socket.socket()  # socket.AF_INET, socket.SOCK_STREAM)

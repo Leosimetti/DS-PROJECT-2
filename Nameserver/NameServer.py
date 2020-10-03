@@ -57,7 +57,7 @@ class FileInfo:
 
 
 def write_file(fileInfo: FileInfo, client_sock : socket.socket):
-def write_file(fileInfo: FileInfo, clientSocket: socket.socket):
+    # print("ENTERED func")
     servers = random.sample(SONS, REPLICAS)
     fileInfo.addContainers(servers)
     filesDict[fileInfo.fileName] = fileInfo
@@ -67,8 +67,10 @@ def write_file(fileInfo: FileInfo, clientSocket: socket.socket):
         sock.connect((server, CMND_PORT))
         storageServersFiles[server] = fileInfo
         sock.send(b'write?CON?' + fileInfo.dump())
+    # print("Tried sending Hostadata")
     client_sock.send(servers[0].encode())
     client_sock.send(servers[1].encode())
+    # print("Host data was sent")
 
 
 def create_file(fileInfo: FileInfo):
@@ -84,7 +86,6 @@ def create_file(fileInfo: FileInfo):
         sock.send(b'create?CON?' + fileInfo.dump())
 
 
-def read_file(fileInfo: FileInfo, clientIP):
 def read_file(fileInfo: FileInfo, clientSocket: socket.socket):
     servers = filesDict[fileInfo.fileName].serverContainers
     server = random.sample(servers)
