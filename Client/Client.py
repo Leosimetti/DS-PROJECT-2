@@ -8,6 +8,8 @@ from time import sleep
 BUFFER = 1024
 SERVER_WELCOME_PORT = 5000
 CLIENT_MESSAGE_PORT = 5002
+DELIMITER = "?CON?"
+B_DELIMITER = b"?CON?"
 
 
 def findNameServer():

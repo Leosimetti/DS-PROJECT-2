@@ -1,8 +1,6 @@
 import socket
 from threading import Thread
-import random
 import os
-import re
 from time import sleep
 import shutil
 
@@ -12,7 +10,7 @@ SERVER_HEARTBEAT_PORT = 5001
 CLIENT_MESSAGE_PORT = 5002
 SERVER_MESSAGE_PORT = 5003
 DELIMITER = "?CON?"
-B_DELIMITER = b"?CON"
+B_DELIMITER = b"?CON?"
 
 
 class Heart(Thread):

@@ -1,8 +1,6 @@
 import socket
 from threading import Thread
 import random
-import os
-import re
 from time import sleep
 
 BUFFER = 1024
@@ -11,7 +9,7 @@ SERVER_HEARTBEAT_PORT = 5001
 CLIENT_MESSAGE_PORT = 5002
 SERVER_MESSAGE_PORT = 5003
 DELIMITER = "?CON?"
-B_DELIMITER = b"?CON"
+B_DELIMITER = b"?CON?"
 # TODO CHECK 2
 REPLICAS = 1
 
@@ -69,33 +67,45 @@ class StorageDemon:
     def writeFile(self):
         pass
 
-    def addFileToServer(self, fileInfo: FileInfo):
-        pass
+    def addFileToServer(self, server, fileInfo: FileInfo):
+        if server in self.serversFiles:
+            self.serversFiles[server].append(fileInfo)
+        else:
+            self.serversFiles[server] = [fileInfo]
+
+    def delFileFromServer(self, server, fileInfo: FileInfo):
+        self.serversFiles[server].remove(fileInfo)
 
     def createFile(self, fileInfo: FileInfo):
         servers = random.sample(StorageServers.keys(), REPLICAS)
         fileInfo.addContainers(servers)
         self.fileDict[fileInfo.fileLocation()] = fileInfo
         for server in servers:
-            self.serversFiles[server] = fileInfo
+            self.addFileToServer(server, fileInfo)
             print(f"Send CREATE request to storage server with IP:{server}")
             StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode())
 
     def copyFile(self, fileInfo: FileInfo, newFileInfo: FileInfo):
-        servers = self.fileDict[(fileInfo.fileName, fileInfo.filePath)]
+        servers = self.fileDict[fileInfo.fileLocation()].storageServers
         newFileInfo.addContainers(servers)
         self.fileDict[newFileInfo.fileLocation()] = newFileInfo
         for server in servers:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.connect((server, SERVER_MESSAGE_PORT))
-            self.serversFiles[server] = newFileInfo
+            self.addFileToServer(server, newFileInfo)
             print(f"Send COPY request to storage server with IP:{server}")
             StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode() +
                                                      B_DELIMITER + newFileInfo.encode())
 
     def delFile(self, fileInfo: FileInfo):
-        servers = self.fileDict[(fileInfo.fileName, fileInfo.filePath)]
+        trueFileInfo = self.fileDict[fileInfo.fileLocation()]
+        servers = trueFileInfo.storageServers
+        for server in servers:
+            self.delFileFromServer(server, fileInfo)
+            print(f"Send delete request to storage server with IP:{server}")
+            StorageServerMessageSockets[server].send(b"delete" + B_DELIMITER + fileInfo.encode())
+
+    def infoFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
+        trueFileInfo = self.fileDict[fileInfo.fileLocation()]
+        clientSocket.send(trueFileInfo.encode())
 
 
 class IPPropagator(Thread):
