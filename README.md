@@ -18,13 +18,14 @@ LEVA <--
 # Description of communication protocols
 Ports:
 
-1337 --> Nameserver welcome
+5000 : Providing name server IP  
 
 1488 --> Server to Nameserver
+5001 : Heartbeat between NameServer and StorageServers  
 
-6969 --> For clients
+5002 : Messaging between NameServer and StorageServer
 
-2280 --> NS to Server for file command
+5003 : Messaging with clients  
 
 # Provable contribution of each team member
 ### list of good bois

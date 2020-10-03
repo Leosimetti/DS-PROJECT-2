@@ -9,7 +9,10 @@ WORKDIR ./app
 # Copy files from project dir into container’s folder
 COPY ./ /app/
 # Specify port that could(!) be opened from container later
-EXPOSE 6969
+EXPOSE 5000
+EXPOSE 5001
+EXPOSE 5002
+EXPOSE 5003
 
 #HEHEHEHEHE
 CMD ["python3","-u","Client.py"]

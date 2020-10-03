@@ -1,14 +1,3 @@
-# Only one unique server; single one
-
-# It is proxy server more or less
-
-# Naming servers also provide a way for storage servers to register their presence.
-
-# Each file should be replicated on at least 2 Storage Servers.
-# If one of the Storage Server goes down, files, that is stored should be replicated to another Storage Server.
-
-# Choose the serv with the least load?? Via heartbeat msgs containing Free space and # of requests
-
 import socket
 from threading import Thread
 import random
@@ -16,129 +5,93 @@ import os
 import re
 from time import sleep
 
-SONS = []
-BUFF = 72  # Unified constant
-PORT = 1488
-CLIENT_PORT = 6969
-CMND_PORT = 2280
+BUFFER = 1024
+SERVER_WELCOME_PORT = 5000
+SERVER_HEARTBEAT_PORT = 5001
+CLIENT_MESSAGE_PORT = 5002
+SERVER_MESSAGE_PORT = 5003
+DELIMITER = "?CON?"
+B_DELIMITER = b"?CON"
+# TODO CHECK 2
+REPLICAS = 1
 
-filesDict = {}
-storageServersFiles = {}
+# Dict {ServerIP:ServerName}
+StorageServers = {}
+# Dict {ServerIP:ServerMessageSocket}
+StorageServerMessageSockets = {}
 
-REPLICAS = 2
-Delimiter = "?CON?"
+ClientIPs = []
 
 
 class FileInfo:
-    def __init__(self, fileName: str, fileSize: int, filePath: str):
-        self.serverContainers = set()
+    def __init__(self, fileName: str, filePath: str, fileSize: int):
         self.fileName = fileName
-        self.fileSize = fileSize
         self.filePath = filePath
+        self.fileSize = fileSize
+        self.storageServers = set()
+
+    def fileLocation(self):
+        """
+        Return tuple of fileName and filePath
+        """
+        return self.fileName, self.filePath
 
     def addContainer(self, serverIP):
-        self.serverContainers.add(serverIP)
+        self.storageServers.add(serverIP)
 
     def addContainers(self, serverIPs):
-        self.serverContainers.update(serverIPs)
+        self.storageServers.update(serverIPs)
 
     def deleteContainer(self, serverIP):
-        self.serverContainers.remove(serverIP)
-
-    def correspondsTo(self, otherFileInfo):
-        if self.filePath == otherFileInfo.filePath and self.fileName == otherFileInfo.fileName:
-            return True
+        self.storageServers.remove(serverIP)
 
     def __str__(self):
-        return f"FileName: {self.fileName}, FileSize: {self.fileSize}, FilePath: {self.filePath}"
+        """
+        To string method
+        """
+        return f"FileName: {self.fileName}, FileSize: {self.fileSize}, FilePath: {self.filePath}\n" \
+               f"Storage servers IPs: {self.storageServers}"
 
-    def dump(self):
-        return f"{self.fileName}{Delimiter}{self.fileSize}{Delimiter}{self.filePath}".encode()
-
-
-def write_file(fileInfo: FileInfo, client_sock : socket.socket):
-def write_file(fileInfo: FileInfo, clientSocket: socket.socket):
-    servers = random.sample(SONS, REPLICAS)
-    fileInfo.addContainers(servers)
-    filesDict[fileInfo.fileName] = fileInfo
-    for server in servers:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.connect((server, CMND_PORT))
-        storageServersFiles[server] = fileInfo
-        sock.send(b'write?CON?' + fileInfo.dump())
-    client_sock.send(servers[0].encode())
-    client_sock.send(servers[1].encode())
+    def encode(self):
+        """
+        Return encoded data about file separated by delimiters
+        """
+        return f"{self.fileName}{DELIMITER}{self.fileSize}{DELIMITER}{self.filePath}".encode()
 
 
-def create_file(fileInfo: FileInfo):
-    servers = random.sample(SONS, REPLICAS)
-    fileInfo.addContainers(servers)
-    filesDict[fileInfo.fileName] = fileInfo
-    for server in servers:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.connect((server, CMND_PORT))
-        print(f"Creation of {fileInfo}")
-        storageServersFiles[server] = fileInfo
-        sock.send(b'create?CON?' + fileInfo.dump())
+class StorageDemon:
+    def __init__(self):
+        self.serversFiles = dict()
+        self.fileDict = dict()
+
+    def writeFile(self):
+        pass
+
+    def createFile(self, fileInfo: FileInfo):
+        servers = random.sample(StorageServers.keys(), REPLICAS)
+        fileInfo.addContainers(servers)
+        self.fileDict[fileInfo.fileLocation()] = fileInfo
+        for server in servers:
+            self.serversFiles[server] = fileInfo
+            print(f"Send CREATE request to storage server with IP:{server}")
+            #TODO CHANGE затычка ON не затычка
+            StorageServerMessageSockets[server].send(b"create")
+
+    def copyFile(self, fileInfo: FileInfo, newFileInfo: FileInfo):
+        servers = self.fileDict[(fileInfo.fileName, fileInfo.filePath)]
+        newFileInfo.addContainers(servers)
+        self.fileDict[newFileInfo.fileLocation()] = newFileInfo
+        for server in servers:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.connect((server, SERVER_MESSAGE_PORT))
+            self.serversFiles[server] = newFileInfo
+            print(f"Send COPY request to storage server with IP:{server}")
+            # TODO CHANGE затычка ON не затычка
+            StorageServerMessageSockets[server].send(b"create")
 
 
-def read_file(fileInfo: FileInfo, clientIP):
-def read_file(fileInfo: FileInfo, clientSocket: socket.socket):
-    servers = filesDict[fileInfo.fileName].serverContainers
-    server = random.sample(servers)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.connect((server, CMND_PORT))
-    sock.send(b'read?CON?' + fileInfo.dump())
-
-
-def info_file(fileName: str, clientIP):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.connect((fileName, CMND_PORT))
-    sock.send(filesDict[fileName])
-def info_file(fileName: str, clientSocket: socket.socket):
-    clientSocket.send(filesDict[fileName])
-
-
-def copy_file(fileInfo: FileInfo, newFileInfo: FileInfo):
-    servers = filesDict[fileInfo.fileName].serverContainers
-    newFileInfo.addContainers(servers)
-    for server in servers:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.connect((server, CMND_PORT))
-        storageServersFiles[server] = newFileInfo
-        sock.send(b'copy?CON?' + fileInfo.dump() + b'?CON?' + newFileInfo.dump())
-
-
-# Thread to listen one particular client
-class HeartListener(Thread):
-    def __init__(self, name: str, sock: socket.socket, ip):
-        super().__init__(daemon=True)
-        self.sock = sock
-        self.name = name
-        self.ip = ip
-
-    # clean up
-    def _close(self):
-        SONS.remove(self.ip)
-        self.sock.close()
-        print(self.name + ' ded')
-
-    def run(self):
-        try:
-            while self.sock.recv(BUFF):
-                # print(f' {self.name} IS ALIVE!!!!!!! ')
-                sleep(2)
-        except ConnectionResetError:
-            print("BLYA, SON ZDOX")
-            self._close()
-
-
-class WelcomeSocket(Thread):
+class IPPropagator(Thread):
     def __init__(self, sock: socket.socket):
         super().__init__(daemon=True)
         self.sock = sock
@@ -146,105 +99,132 @@ class WelcomeSocket(Thread):
     def run(self):
         while True:
             data, addr = self.sock.recvfrom(1024)
-            print(f"{data} : {addr}")
-            self.sock.sendto(b'Dayu IP', addr)
+            print("New entity trying to find name server.")
+            self.sock.sendto(b'Hello, new server', addr)
 
 
-class Backend(Thread):
-    def __init__(self):
-        super().__init__(daemon=True)
-
-    def run(self):
-        next_name = 1
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(('', PORT))
-        sock.listen()
-        print("Waiting for SONS...")
-        while True:
-            con, addr = sock.accept()
-            SONS.append(addr[0])
-            name = 'SON ' + str(next_name)
-            next_name += 1
-            print(f"{name} " + str(addr) + ' WAS FOUND!!!')
-            # start new thread to deal with client
-            HeartListener(name, con, addr[0]).start()
-
-            # create_file("NUDES", "aaa")
-            # # copy_file(FileInfo("NUDES", 0, "1488"), FileInfo("NOT_NUDES", 0, "1488"))
-            # # create_file("NUDES")
-            # # create_file("NUDES")
-            # # create_file("SA")
-            # # create_file("vdav")
-            # # create_file("asv")
-            # # create_file("NUDES")
-            # # create_file("AS")
-            # # create_file("NUDES")
-
-class ClientMessaging(Thread):
-    def __init__(self, name: str, sock: socket.socket, ip):
+class HeartListener(Thread):
+    def __init__(self, name: str, sock: socket.socket, ip: str):
         super().__init__(daemon=True)
         self.name = name
         self.sock = sock
-        self.name = name
         self.ip = ip
+
+    def close(self):
+        del StorageServers[self.ip]
+        print(f"Storage server {self.name}(IP:{self.ip}) disconnected.")
+        self.sock.close()
+
+    def run(self):
+        try:
+            while self.sock.recv(BUFFER):
+                sleep(3)
+        except ConnectionResetError:
+            self.close()
+
+
+class SSHeartbeatInitializer(Thread):
+    def __init__(self, sock: socket.socket):
+        super().__init__(daemon=True)
+        self.sock = sock
+
+    def run(self):
+        serverID = 1
+        while True:
+            con, addr = self.sock.accept()
+            serverIP = addr[0]
+            SSName = f"SS_{serverID}"
+            StorageServers[serverIP] = SSName
+            print(f"Storage server {SSName}(IP:{serverIP}) connected.")
+            serverID += 1
+            HeartListener(SSName, con, serverIP).start()
+
+
+class ClientMessenger(Thread):
+    def __init__(self, name: str, sock: socket.socket, ip: str):
+        super().__init__()
+        self.name = name
+        self.sock = sock
+        self.ip = ip
+
+    def close(self):
+        ClientIPs.remove(self.ip)
+        print(f"Client {self.name}(IP:{self.ip}) disconnected.")
+        self.sock.close()
 
     def run(self):
         while True:
-            msg = self.sock.recv(BUFF)
+            msg = self.sock.recv(BUFFER)
             if msg == b'':
                 sleep(1)
                 continue
-            arr = msg.decode().split(Delimiter)
-            cmd_type, meta_data = arr[0], arr[1:]
-            print(f"New request: {cmd_type}, metadata: {meta_data}")
-            if cmd_type == "copy":
-                fileName, _, filePath, newFileName, _, newFilePath = meta_data
-                fileInfo = FileInfo(fileName, 0, filePath)
-                newFileInfo = FileInfo(newFileName, 0, newFilePath)
-                copy_file(fileInfo, newFileInfo)
-            elif cmd_type == "receive":
-                fileName, fileSize, filePath = meta_data
-                fileInfo = FileInfo(fileName, int(fileSize), filePath)
-                write_file(fileInfo, self.sock)
-            elif cmd_type == "send":
-                fileName, _, filePath = meta_data
-                fileInfo = FileInfo(fileName, 0, filePath)
-                read_file(fileInfo, self.ip)
-            elif cmd_type == "create":
-                fileName, _, filePath = meta_data
-                fileInfo = FileInfo(fileName, 0, filePath)
-                create_file(fileInfo)
-            else:
-                print(" CHORT, TI SHTO ZAPRASHIVAESH, AAAAAAAAAA?")
+            print(f'Client {self.name}(IP:{self.ip}) send a message: {msg.decode()}')
+        self.close()
+
+
+class ClientWelcome(Thread):
+    def __init__(self, sock: socket.socket):
+        super().__init__(daemon=True)
+        self.sock = sock
+
+    def run(self):
+        clientID = 1
+        while True:
+            con, addr = self.sock.accept()
+            clientIP = addr[0]
+            ClientIPs.append(clientIP)
+            clientName = f"CLIENT_{clientID}"
+            print(f"Client {clientName}(IP:{clientIP}) connected.")
+            clientID += 1
+            ClientMessenger(clientName, con, clientIP).start()
+
+
+class ServerWelcome(Thread):
+    def __init__(self, sock: socket.socket):
+        super().__init__(daemon=True)
+        self.sock = sock
+
+    def run(self):
+        while True:
+            con, addr = self.sock.accept()
+            serverIP = addr[0]
+            serverName = StorageServers[serverIP]
+            StorageServerMessageSockets[serverIP] = con
+            print(f"Storage server {serverName}(IP:{serverIP}) establish messaging connection.")
+            s = StorageDemon()
+            s.createFile(FileInfo("name", "./", 123))
+
 
 def main():
-    welcome_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    welcome_sock.bind(("", 1337))
-    WelcomeSocket(welcome_sock).start()
+    # UDP socket to meet new Storage Servers and provide them IP
+    IPPropagationSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    IPPropagationSocket.bind(("", SERVER_WELCOME_PORT))
+    IPPropagator(IPPropagationSocket).start()
 
-    Backend().start()
+    # TCP welcome socket for initializing Storage Servers heartbeats
+    storageServerHeartbeatInitializer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    storageServerHeartbeatInitializer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    storageServerHeartbeatInitializer.bind(('', SERVER_HEARTBEAT_PORT))  # Bind to specified port
+    storageServerHeartbeatInitializer.listen()  # Enable connections
+    SSHeartbeatInitializer(storageServerHeartbeatInitializer).start()
 
-    next_name = 1
-    # AF_INET – IPv4, SOCK_STREAM – TCP
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # reuse address; in OS address will be reserved after app closed for a while
-    # so if we close and immediately start server again – we'll get error
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    # listen to all interfaces at 8800 port
-    sock.bind(('', CLIENT_PORT))
-    sock.listen()
-    print("Waiting for Clients...")
-    while True:
-        # blocking call, waiting for new client to connect
-        con, addr = sock.accept()
-        name = 'Client ' + str(next_name)
-        next_name += 1
-        print(f"{name} " + str(addr) + ' WAS FOUND!!!')
-        ClientMessaging(name, con, addr[0]).start()
-        # start new thread to deal with client
+    # TCP welcome socket for message data about requests
+    storageServerWelcomeSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    storageServerWelcomeSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    storageServerWelcomeSocket.bind(('', SERVER_MESSAGE_PORT))
+    storageServerWelcomeSocket.listen()
+    ServerWelcome(storageServerWelcomeSocket).start()
+
+    # TCP socket to initiate connections with Clients
+    clientWelcomeSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    clientWelcomeSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    clientWelcomeSocket.bind(("", CLIENT_MESSAGE_PORT))
+    clientWelcomeSocket.listen()
+    ClientWelcome(clientWelcomeSocket).start()
+
     while True:
         pass
+
 
 if __name__ == "__main__":
     main()
