@@ -18,7 +18,7 @@ LEVA <--
 # Description of communication protocols
 Ports:
 
-1337 --> welcome
+1337 --> Nameserver welcome
 
 1488 --> Server to Nameserver
 
