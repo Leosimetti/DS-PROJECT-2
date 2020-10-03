@@ -61,7 +61,9 @@ class FileInfo:
 
 class StorageDemon:
     def __init__(self):
+        #Dict {ServerIP:FileInfo}.
         self.serversFiles = dict()
+        #Dict {(fileLocation):FileInfo}
         self.fileDict = dict()
 
     def writeFile(self):
@@ -74,8 +76,7 @@ class StorageDemon:
         for server in servers:
             self.serversFiles[server] = fileInfo
             print(f"Send CREATE request to storage server with IP:{server}")
-            #TODO CHANGE затычка ON не затычка
-            StorageServerMessageSockets[server].send(b"create")
+            StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode())
 
     def copyFile(self, fileInfo: FileInfo, newFileInfo: FileInfo):
         servers = self.fileDict[(fileInfo.fileName, fileInfo.filePath)]
@@ -87,8 +88,12 @@ class StorageDemon:
             sock.connect((server, SERVER_MESSAGE_PORT))
             self.serversFiles[server] = newFileInfo
             print(f"Send COPY request to storage server with IP:{server}")
-            # TODO CHANGE затычка ON не затычка
-            StorageServerMessageSockets[server].send(b"create")
+            StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode() +
+                                                     B_DELIMITER + newFileInfo.encode())
+
+    def delFile(self, fileInfo: FileInfo):
+        servers = self.fileDict[(fileInfo.fileName, fileInfo.filePath)]
+        pass
 
 
 class IPPropagator(Thread):
@@ -192,7 +197,6 @@ class ServerWelcome(Thread):
             StorageServerMessageSockets[serverIP] = con
             print(f"Storage server {serverName}(IP:{serverIP}) establish messaging connection.")
             s = StorageDemon()
-            s.createFile(FileInfo("name", "./", 123))
 
 
 def main():
