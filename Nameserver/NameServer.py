@@ -143,6 +143,7 @@ class StorageDemon:
         for server in servers:
             # add file to servers dict-s
             self.addFileToServer(server, fileInfo)
+            StorageServerMessageSockets[server].send(b"write" + B_DELIMITER + fileInfo.encode())
         clientSocket.send(DELIMITER.join(servers).encode())
 
     def addFileToServer(self, server, fileInfo: FileInfo):
