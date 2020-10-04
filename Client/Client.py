@@ -76,15 +76,15 @@ class Client():
         path = ""
 
         # Send metadata first
-        msg = "receive" + DELIMITER + filename + DELIMITER + str(size)+ DELIMITER + path
+        msg = "write" + DELIMITER + filename + DELIMITER + str(size)+ DELIMITER + path
         self.soc.send(msg.encode())
 
         # Wait for data about server
-        rcv1 = self.soc.recv(BUFFER).decode()
-        rcv2 = self.soc.recv(BUFFER).decode()
+        response = self.soc.recv(BUFFER).decode()
+        servers = response.split(DELIMITER)
 
         # Send to this server
-        print(f"IPS are {rcv1} and {rcv2}")
+        print(f"IPS are {servers[0]} and {servers[1]}")
 
 
     # Delete given file from DFS
