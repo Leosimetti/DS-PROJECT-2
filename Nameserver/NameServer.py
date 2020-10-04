@@ -173,13 +173,17 @@ class ClientMessenger(Thread):
         self.sock.close()
 
     def run(self):
-        while True:
-            msg = self.sock.recv(BUFFER)
-            if msg == b'':
-                sleep(1)
-                continue
-            print(f'Client {self.name}(IP:{self.ip}) send a message: {msg.decode()}')
-        self.close()
+        try:
+            while True:
+                msg = self.sock.recv(BUFFER)
+                if msg == b'':
+                    sleep(1)
+                    continue
+                print(f'Client {self.name}(IP:{self.ip}) send a message: {msg.decode()}')
+        except:
+            pass
+        finally:
+            self.close()
 
 
 class ClientWelcome(Thread):
