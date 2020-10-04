@@ -13,12 +13,68 @@ B_DELIMITER = b"?CON?"
 # TODO CHECK 2
 REPLICAS = 1
 
+
+class NameServer:
+    def __init__(self):
+        self.StorageServers = {}
+
+
 # Dict {ServerIP:ServerName}
 StorageServers = {}
 # Dict {ServerIP:ServerMessageSocket}
 StorageServerMessageSockets = {}
 
 ClientIPs = []
+
+
+class FilesTree:
+    def __init__(self):
+        a = FolderNode("root")
+
+
+# Folder
+class FolderNode:
+    def __init__(self, name: str):
+        self.name = name
+        self.files = []
+        self.folders = []
+
+    def addFolder(self, node):
+        self.folders.append(node)
+
+    def removeFolder(self, node):
+        self.folders.remove(node)
+
+    def getFolder(self, folderName):
+        for folder in self.folders:
+            if folder.name == folderName:
+                return folder
+        return Exception
+
+    def addFile(self, leaf):
+        self.files.append(leaf)
+
+    def removeFile(self, leaf):
+        self.files.remove(leaf)
+
+    def __str__(self):
+        """
+        String with all info about folders and files.
+        """
+        if len(self.folders) != 0:
+            result = "Folders: \n\t"
+            for folder in self.folders:
+                result += f"{folder.name} "
+            result += "\n"
+        else:
+            result = ""
+        if len(self.files) != 0:
+            result += "Files: \n\t"
+            for fileInfo in self.files:
+                result += f"{fileInfo.fileName} "
+        else:
+            result += "Directory does not contain any file"
+        return result
 
 
 class FileInfo:
@@ -59,10 +115,9 @@ class FileInfo:
 
 class StorageDemon:
     def __init__(self):
-        # Dict {ServerIP:[FileInfo-s]}.
-        self.serversFiles = dict()
-        # Dict {(fileLocation):FileInfo}
-        self.fileDict = dict()
+        self.serversFiles = dict()  # Dict {ServerIP:[FileInfo-s]}.
+        self.fileDict = dict()  # Dict {(fileLocation):FileInfo}
+        self.fileTree = FilesTree()
 
     def writeFile(self):
         pass
@@ -136,7 +191,6 @@ class HeartListener(Thread):
     def run(self):
         try:
             while self.sock.recv(BUFFER):
-                print("check")
                 sleep(3)
         except:
             pass
@@ -162,11 +216,12 @@ class SSHeartbeatInitializer(Thread):
 
 
 class ClientMessenger(Thread):
-    def __init__(self, name: str, sock: socket.socket, ip: str):
+    def __init__(self, name: str, sock: socket.socket, ip: str, demon: StorageDemon):
         super().__init__()
         self.name = name
         self.sock = sock
         self.ip = ip
+        self.demon = demon
 
     def close(self):
         ClientIPs.remove(self.ip)
@@ -188,9 +243,10 @@ class ClientMessenger(Thread):
 
 
 class ClientWelcome(Thread):
-    def __init__(self, sock: socket.socket):
+    def __init__(self, sock: socket.socket, demon: StorageDemon):
         super().__init__(daemon=True)
         self.sock = sock
+        self.demon = demon
 
     def run(self):
         clientID = 1
@@ -201,7 +257,7 @@ class ClientWelcome(Thread):
             clientName = f"CLIENT_{clientID}"
             print(f"Client {clientName}(IP:{clientIP}) connected.")
             clientID += 1
-            ClientMessenger(clientName, con, clientIP).start()
+            ClientMessenger(clientName, con, clientIP, self.demon).start()
 
 
 class ServerWelcome(Thread):
@@ -216,7 +272,6 @@ class ServerWelcome(Thread):
             serverName = StorageServers[serverIP]
             StorageServerMessageSockets[serverIP] = con
             print(f"Storage server {serverName}(IP:{serverIP}) establish messaging connection.")
-            s = StorageDemon()
 
 
 def main():
@@ -239,12 +294,14 @@ def main():
     storageServerWelcomeSocket.listen()
     ServerWelcome(storageServerWelcomeSocket).start()
 
+    demon = StorageDemon()
+
     # TCP socket to initiate connections with Clients
     clientWelcomeSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     clientWelcomeSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     clientWelcomeSocket.bind(("", CLIENT_MESSAGE_PORT))
     clientWelcomeSocket.listen()
-    ClientWelcome(clientWelcomeSocket).start()
+    ClientWelcome(clientWelcomeSocket, demon).start()
 
     while True:
         pass
