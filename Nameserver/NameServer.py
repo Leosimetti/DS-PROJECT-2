@@ -210,6 +210,7 @@ class StorageDemon:
 
     def initialize(self, clientSocket: socket.socket):
         space = 0
+
         for serverSocket in StorageServerMessageSockets.values():
             # Let garbage collector manage it
             self.serversFiles = dict()
@@ -258,6 +259,7 @@ class HeartListener(Thread):
 
     def close(self):
         del StorageServers[self.ip]
+        del StorageServerMessageSockets[self.ip]
         print(f"Storage server {self.name}(IP:{self.ip}) disconnected.")
         self.sock.close()
 
