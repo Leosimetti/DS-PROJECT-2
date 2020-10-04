@@ -12,6 +12,10 @@ DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
 
 
+class UnknownCommandException(Exception):
+    pass
+
+
 class Client():
 
     # Find and connect to the Namenode
@@ -37,6 +41,7 @@ class Client():
 
 
     def init(self):
+        # TODO
         pass
         # . Initialize the client storage on a new system,
         # should remove any existing file in the dfs root directory and return available size.
@@ -57,6 +62,7 @@ class Client():
 
 
     def read(self):
+        # TODO
         pass  # . Should allow to read any file from DFS (download a file from the DFS to the Client side).
 
 
@@ -116,7 +122,7 @@ class Client():
     # Move file from src to dest
     def move(self, src, dest):
          
-        msg = DELIMITER.join(["copy", src, dest])
+        msg = DELIMITER.join(["move", src, dest])
         self.soc.send(msg.encode())
 
         # TODO get responses from server?
@@ -125,6 +131,8 @@ class Client():
     # Change GayErectory
     def open_dir(self, path):
          
+        # What TODO with relative paths?
+
         msg = DELIMITER.join(["cd", path])
         self.soc.send(msg.encode())
 
@@ -165,29 +173,42 @@ class Client():
 
         # TODO
         if command == "init":
-            init()
+            self.init()
+
         elif command == "create" or command == "make":
-            create(args[0])
+            self.create(args[0])
+
         elif command == "read" or command == "get":
+            # TODO
             pass
+
         elif command == "write" or command == "put":
-            pass
+            self.write(args[0])
+
         elif command in ["delete", "del", "rm"]:
-            pass
+            self.delete(args[0])
+
         elif command == "info":
-            pass
+            self.info(args[0])
+
         elif command == "copy" or command == "cp":
-            pass
+            self.copy(args[0], args[1])
+
         elif command == "move" or command == "mv":
-            pass
+            self.move(args[0], args[1])
+
         elif command == "open" or command == "cd":
-            pass
+            self.open_dir(args[0])
+
         elif command == "read" or command == "ls":
-            pass
+            self.read_dir(args[0])
+
         elif command == "make_directory" or command == "mkdir":
-            pass
+            self.make_dir(args[0])
+
         elif command == "delete_directory" or command == "del_dir":
             pass
+
         else:
             raise UnknownCommandException
 
