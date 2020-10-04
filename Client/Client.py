@@ -25,7 +25,7 @@ class Client():
         nameServerIP = self.findNameServer()
         # Establish connection
         nameServerMessengerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        nameServerMessengerSocket.connect((nameServerIP, CLIENT_MESSAGE_PORT))
+        nameServerMessengerSocket.connect((nameServerIP, SERVER_WELCOME_PORT))
 
         self.soc = nameServerMessengerSocket
         self.curDir = "/"
