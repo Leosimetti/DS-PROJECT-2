@@ -17,7 +17,7 @@ class Client():
     # Find and connect to the Namenode
     def __init__(self):
         # Find name server
-        NameServerIP = findNameServer()
+        NameServerIP = self.findNameServer()
         # Establish connection
         nameServerMessengerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         nameServerMessengerSocket.connect((NameServerIP, CLIENT_MESSAGE_PORT))
@@ -50,7 +50,7 @@ class Client():
         # TODO IMPLEMENT REALITVE LOCATION!!!!
         path = ""
 
-        msg = DELIMITER.join("create", filename, path)
+        msg = DELIMITER.join(["create", filename, path])
         self.soc.send(msg.encode())
 
         # TODO receive data from servers
@@ -86,7 +86,7 @@ class Client():
         # TODO IMPLEMENT REALITVE LOCATION!!!!
         path = ""
 
-        msg = DELIMITER.join("del", filename, path)
+        msg = DELIMITER.join(["del", filename, path])
         self.soc.send(msg.encode())
 
         # TODO get responses from server?
@@ -98,7 +98,7 @@ class Client():
         # TODO IMPLEMENT REALITVE LOCATION!!!!
         path = ""
 
-        msg = DELIMITER.join("info", filename, path)
+        msg = DELIMITER.join(["info", filename, path])
         self.soc.send(msg.encode())
 
         # TODO get responses from server
@@ -107,7 +107,7 @@ class Client():
     # Copy file from src to dest
     def copy(self, src, dest):
         
-        msg = DELIMITER.join("copy", src, dest)
+        msg = DELIMITER.join(["copy", src, dest])
         self.soc.send(msg.encode())
 
         # TODO get responses from server?
@@ -116,7 +116,7 @@ class Client():
     # Move file from src to dest
     def move(self, src, dest):
          
-        msg = DELIMITER.join("copy", src, dest)
+        msg = DELIMITER.join(["copy", src, dest])
         self.soc.send(msg.encode())
 
         # TODO get responses from server?
@@ -125,7 +125,7 @@ class Client():
     # Change GayErectory
     def open_dir(self, path):
          
-        msg = DELIMITER.join("cd", path)
+        msg = DELIMITER.join(["cd", path])
         self.soc.send(msg.encode())
 
         # TODO get responses from server?
@@ -134,7 +134,7 @@ class Client():
     # Get list of files stored in the directory
     def read_dir(self, path):
          
-        msg = DELIMITER.join("ls", path)
+        msg = DELIMITER.join(["ls", path])
         self.soc.send(msg.encode())
 
         # TODO get responses from server
@@ -145,7 +145,7 @@ class Client():
          
         # TODO not sure about paths and what so ever
 
-        msg = DELIMITER.join("mkdir", dir_name)
+        msg = DELIMITER.join(["mkdir", dir_name])
         self.soc.send(msg.encode())
 
         # TODO get responses from server?
