@@ -45,7 +45,7 @@ def write(soc, filename):
     path = ""
 
     # Send metadata first
-    msg = "receive" + "?CON?" + filename + "?CON?" + str(size)+"?CON?" + path
+    msg = "receive" + DELIMITER + filename + DELIMITER + str(size)+ DELIMITER + path
     soc.send(msg.encode())
 
     # Wait for data about server
@@ -64,18 +64,22 @@ def info():
     pass  # . Should provide information about the file (any useful information - size, node id, etc.)
 
 
+# Copy file from src to dest
 def copy():
     pass  # . Should allow to create a copy of file.
 
 
-def move():
+# Move file from src to dest
+def move(src, dest):
     pass  # ". Should allow to move a file to the specified path.
 
 
+# Change GayErectory
 def open_dir():
     pass  # . Should allow to change directory
 
 
+# ls
 def read_dir():
     pass  # . Should return list of files, which are stored in the directory.
 
