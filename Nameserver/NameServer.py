@@ -219,7 +219,7 @@ class StorageDemon:
             data = serverSocket.recv(BUFFER).decode().split(DELIMITER)
             serverSpace = int(data[1])
             space += serverSpace
-        realSpace = space // REPLICAS // (2**20)
+        realSpace = space // REPLICAS // (2**20) // 8
         clientSocket.send(str(realSpace).encode())
 
     def readDirectory(self, path, clientSocket: socket.socket):

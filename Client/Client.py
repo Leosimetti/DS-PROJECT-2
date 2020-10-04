@@ -43,7 +43,7 @@ class Client():
     def init(self):
         self.soc.send("init".encode())
 
-        print(f"Free space: {self.soc.recv(BUFFER).decode()}")
+        print(f"Total free space: {self.soc.recv(BUFFER).decode()} Mb")
         # . Initialize the client storage on a new system,
         # should remove any existing file in the dfs root directory and return available size.
 

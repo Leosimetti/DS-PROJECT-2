@@ -41,7 +41,7 @@ class ServerMessenger(Thread):
 
         free_space = shutil.disk_usage(os.getcwd())[2]
         self.sock.send("FREE".encode() + B_DELIMITER + str(free_space).encode())
-        print(f"Available space: {free_space}")
+        print(f"Available space: {free_space//1024//1024//8} Mb")
 
     def write(self, metadata):
         print(f"rcv {metadata}")
