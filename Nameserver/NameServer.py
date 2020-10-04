@@ -217,9 +217,9 @@ class StorageDemon:
             self.fileTree = FilesTree()
             serverSocket.send(b"init")
             data = serverSocket.recv(BUFFER).decode().split(DELIMITER)
-            serverSpace = data[1]
+            serverSpace = int(data[1])
             space += serverSpace
-        realSpace = space
+        realSpace = space // REPLICAS // (2**20)
         clientSocket.send(str(realSpace).encode())
 
     def readDirectory(self, path, clientSocket: socket.socket):
@@ -318,7 +318,7 @@ class ClientMessenger(Thread):
                     fileInfo = FileInfo(fileName, filePath, fileSize)
                     self.demon.writeFile(fileInfo, self.sock)
                 elif req == "init":
-                    self.demon.initialize()
+                    self.demon.initialize(self.sock)
         except:
             pass
         finally:
