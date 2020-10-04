@@ -142,7 +142,7 @@ class StorageDemon:
         for server in servers:
             # add file to servers dict-s
             self.addFileToServer(server, fileInfo)
-            # TODO 
+            # TODO
             clientSocket.send(server.encode() + B_DELIMITER)
 
     def addFileToServer(self, server, fileInfo: FileInfo):
@@ -301,7 +301,11 @@ class ClientMessenger(Thread):
                 data = msg.decode().split(DELIMITER)
                 req, meta = data[0], data[1:]
                 if req == "write":
-                    self.demon.writeFile()
+                    fileName = meta[0]
+                    fileSize = int(meta[1])
+                    filePath = meta[2]
+                    fileInfo = FileInfo(fileName, filePath, fileSize)
+                    self.demon.writeFile(fileInfo, self.sock)
         except:
             pass
         finally:
