@@ -4,6 +4,7 @@ import random
 import os
 import re
 from time import sleep
+import sys
 
 BUFFER = 1024
 SERVER_WELCOME_PORT = 5000
@@ -216,7 +217,31 @@ class Client():
             raise UnknownCommandException
 
 
+def print_help():
+    # TODO
+    print("List of available commands:\n")
+    print("init: Initialize the client storage on a new system; removes any existing file in the dfs root directory and returns available size.")
+    print("create: Creates a new empty file.")
+    print("read: Download a file from the DFS")
+    print("write: Upload a file to the DFS")
+    print("delete: Delete any file from DFS")
+    print("info: Provide information about the file (size, node id, etc.)")
+    print("copy: Create a copy of a file")
+    print("move: Move a file to the specified path")
+    print("open: Change directory")
+    print("read: Return list of files, which are stored in the directory")
+    print("mkdir: Create a new directory")
+    print("del_dir: Delete directory. If the directory contains files, asks for confirmation before deletion")
+
+
 def main():
+    # Always print help at the start of the program.
+    # In case user only querried help, do not execute anything else
+    print_help()
+    if len(sys.argv > 0):
+        if sys.argv[1] in ["--help","-h"]:
+            return 0
+
     client = Client()
 
     while True:
