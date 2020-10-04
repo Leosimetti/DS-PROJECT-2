@@ -11,7 +11,7 @@ SERVER_MESSAGE_PORT = 5003
 DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
 # TODO CHECK 2
-REPLICAS = 2
+REPLICAS = 1
 
 
 class NameServer:
@@ -136,7 +136,8 @@ class StorageDemon:
         # add list of servers as containers of information about file
         fileInfo.addContainers(servers)
         # add file in fileTree
-        self.fileTree.getFolderByPath(fileInfo.filePath).addFile(fileInfo)
+        #TODO NE RABOTAET
+        #self.fileTree.getFolderByPath(fileInfo.filePath).addFile(fileInfo)
         # add file to fileDict
         self.fileDict[fileInfo.fileLocation()] = fileInfo
         for server in servers:
