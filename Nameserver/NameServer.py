@@ -208,13 +208,19 @@ class StorageDemon:
         self.copyFile(fileInfo, newFileInfo)
         self.delFile(fileInfo)
 
-    def initialize(self):
+    def initialize(self, clientSocket: socket.socket):
+        space = 0
         for serverSocket in StorageServerMessageSockets.values():
             # Let garbage collector manage it
             self.serversFiles = dict()
             self.fileDict = dict()
             self.fileTree = FilesTree()
             serverSocket.send(b"init")
+            data = serverSocket.recv(BUFFER).decode().split(DELIMITER)
+            serverSpace = data[1]
+            space += serverSpace
+        realSpace = space
+        clientSocket.send(str(realSpace).encode())
 
     def readDirectory(self, path, clientSocket: socket.socket):
         clientSocket.send(self.fileTree.getFolderByPath(path).__str__().encode())
