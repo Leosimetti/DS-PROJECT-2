@@ -11,7 +11,7 @@ SERVER_MESSAGE_PORT = 5003
 DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
 # TODO CHECK 2
-REPLICAS = 1
+REPLICAS = 2
 
 
 class NameServer:
@@ -130,8 +130,20 @@ class StorageDemon:
         self.fileDict = dict()  # Dict {(fileLocation):FileInfo}
         self.fileTree = FilesTree()
 
-    def writeFile(self):
-        pass
+    def writeFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
+        # choose random servers to handle request
+        servers = random.sample(StorageServers.keys(), REPLICAS)
+        # add list of servers as containers of information about file
+        fileInfo.addContainers(servers)
+        # add file in fileTree
+        self.fileTree.getFolderByPath(fileInfo.filePath).addFile(fileInfo)
+        # add file to fileDict
+        self.fileDict[fileInfo.fileLocation()] = fileInfo
+        for server in servers:
+            # add file to servers dict-s
+            self.addFileToServer(server, fileInfo)
+            # TODO 
+            clientSocket.send(server.encode() + B_DELIMITER)
 
     def addFileToServer(self, server, fileInfo: FileInfo):
         """
@@ -203,8 +215,16 @@ class StorageDemon:
     def readDirectory(self, path, clientSocket: socket.socket):
         clientSocket.send(self.fileTree.getFolderByPath(path).__str__().encode())
 
-    def delDirectory(self, path, clientSocket: socket.socket):
-        pass
+    def delDirectory(self, path):
+        directory = self.fileTree.getFolderByPath(path)
+        for serverSocket in StorageServerMessageSockets.values():
+            serverSocket.send(b"delDirectory" + path.encode())
+
+    def checkAndDelDirectory(self, path, clientSocket: socket.socket):
+        if self.fileTree.getFolderByPath(path).isEmpty():
+            self.delDirectory(path)
+        else:
+            clientSocket.send(b"Ebat ti?")
 
 
 class IPPropagator(Thread):
@@ -278,7 +298,10 @@ class ClientMessenger(Thread):
                 if msg == b'':
                     sleep(1)
                     continue
-                print(f'Client {self.name}(IP:{self.ip}) send a message: {msg.decode()}')
+                data = msg.decode().split(DELIMITER)
+                req, meta = data[0], data[1:]
+                if req == "write":
+                    self.demon.writeFile()
         except:
             pass
         finally:
