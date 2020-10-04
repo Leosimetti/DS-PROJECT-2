@@ -36,7 +36,9 @@ class ServerMessenger(Thread):
     def init():
         # TODO IT IS NOTE SUPPOSED TO BE LIKE THIS!!!!!!!!!!!
         # TODO AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        shutil.rmtree(os.getcwd())  
+        shutil.rmtree(os.getcwd())
+        
+        free_space = shutil.disk_usage(os.getcwd())[2]
 
     def write(self, metadata):
         print(f"rcv {metadata}")
