@@ -67,6 +67,31 @@ class Client():
         pass  # . Should allow to read any file from DFS (download a file from the DFS to the Client side).
 
 
+    def _write(self, sock):
+        print("!!!Connected to server!!!")  # if it is not displayed ==> OOF
+
+        # Counter initialization
+        sas = 0
+        pr_digit = '0'
+
+        # Read/Send
+        with open(name, "rb") as f:
+            for i in range(size):
+                snd = f.read(BUFF)
+                if snd:
+                
+                    # To make output less annoying
+                    msg = str(round(sas / float(size) * 100))
+                    if pr_digit != msg[0] and round(sas / float(size) * 100) > 9:
+                        print(msg, " %")
+                        pr_digit = msg[0]
+
+                    sas += BUFF
+                    sock.sendall(snd)
+                else:
+                    print("Transfer complete!!")
+                    break
+
     def write(self, filename):
         """
         sas.py write sasamba.txt
@@ -84,7 +109,16 @@ class Client():
         servers = response.split(DELIMITER)
 
         # Send to this server
-        print(f"IPS are {servers[0]} and {servers[1]}")
+        print(f"IPS are {servers}")
+
+        for ip in servers:
+            sock = socket.socket()
+            sock.connect((ip, CLIENT_MESSAGE_PORT))
+            self._write(sock)
+            print(f"Completed transfer to IP {ip}")
+        
+
+        
 
 
     # Delete given file from DFS
