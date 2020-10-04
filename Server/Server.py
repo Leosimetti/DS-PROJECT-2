@@ -32,12 +32,49 @@ class ServerMessenger(Thread):
         self.sock = sock
 
     @staticmethod
+    def init():
+        #TODO IT IS NOTE SUPPOSED TO BE LIKE THIS!!!!!!!!!!!
+        #TODO AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        shutil.rmtree(".")
+
+    def write(self, metadata):
+        filename = os.path.basename(metadata[0])
+        filesize = int(metadata[1])
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind(('', CLIENT_MESSAGE_PORT))
+        sock.listen()
+
+        # Counter initialization
+        sas = 0.0
+
+        # Receive/Write
+
+        with open(filename, "wb") as f:
+
+            for i in range(filesize):
+                # Will return zero when done
+                rcv = sock.recv(BUFFER)
+                if rcv:
+                    # Write received data
+                    sas += BUFFER
+                    f.write(rcv)
+                else:
+                    print(f"Transfer of {metadata} complete!!")
+                    break
+
+    @staticmethod
     def create(metaData):
         filename = metaData[0]
         print(f"create {filename}")
         filename = os.path.basename(filename)
         with open(filename, "wb") as f:
             pass
+
+    @staticmethod
+    def deldir(metadata):
+        pass
 
     @staticmethod
     def copy(metaData):
@@ -73,15 +110,22 @@ class ServerMessenger(Thread):
                 if requestType == "copy":
                     self.copy(metaData)
                 elif requestType == "write":
+                    print("TOLYA ZAIMPLMENTb")
                     print(f"rcv {metaData}")
                 elif requestType == "read":
+                    print("TOLYA ZAIMPLMENTb")
                     print(f"send {metaData}")
                 elif requestType == "create":
                     self.create(metaData)
+                elif requestType == "init":
+                    self.init()
+                elif requestType == "deldir":
+                    self.deldir()
                 else:
                     print(f"Unknown request: {requestType}")
             else:
                 sleep(1)
+
 
 
 def findNameServer():

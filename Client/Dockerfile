@@ -15,4 +15,4 @@ EXPOSE 5002
 EXPOSE 5003
 
 #HEHEHEHEHE
-CMD ["python3","-u","Client.py"]
+CMD ["python3","-u","kostil.py"]
