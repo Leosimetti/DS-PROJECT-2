@@ -9,6 +9,7 @@ import sys
 BUFFER = 1024
 SERVER_WELCOME_PORT = 5000
 CLIENT_MESSAGE_PORT = 5002
+FILE_TRANSFER_PORT = 5004
 DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
 
@@ -101,7 +102,7 @@ class Client():
         path = ""
 
         # Send metadata first
-        msg = "write" + DELIMITER + filename + DELIMITER + str(size)+ DELIMITER + path
+        msg = "write" + DELIMITER + filename + DELIMITER + str(size) + DELIMITER + path
         self.soc.send(msg.encode())
 
         # Wait for data about server
@@ -110,10 +111,9 @@ class Client():
 
         # Send to this server
         print(f"IPS are {servers}")
-
         for ip in servers:
             sock = socket.socket()
-            sock.connect((ip, CLIENT_MESSAGE_PORT))
+            sock.connect((ip, FILE_TRANSFER_PORT))
             self._write(sock, filename, size)
             print(f"Completed transfer to IP {ip}")
         

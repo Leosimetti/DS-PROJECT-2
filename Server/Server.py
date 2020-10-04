@@ -9,6 +9,7 @@ SERVER_WELCOME_PORT = 5000
 SERVER_HEARTBEAT_PORT = 5001
 CLIENT_MESSAGE_PORT = 5002
 SERVER_MESSAGE_PORT = 5003
+FILE_TRANSFER_PORT  = 5004
 DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
 
@@ -44,19 +45,22 @@ class ServerMessenger(Thread):
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(('', CLIENT_MESSAGE_PORT))
+        sock.bind(('', FILE_TRANSFER_PORT))
         sock.listen()
+
+        con, addr = sock.accept()
 
         # Counter initialization
         sas = 0.0
 
         # Receive/Write
 
+        print("Starting transfer")
         with open(filename, "wb") as f:
 
             for i in range(filesize):
                 # Will return zero when done
-                rcv = sock.recv(BUFFER)
+                rcv = con.recv(BUFFER)
                 if rcv:
                     # Write received data
                     sas += BUFFER
