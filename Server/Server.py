@@ -38,6 +38,7 @@ class ServerMessenger(Thread):
         shutil.rmtree(".")
 
     def write(self, metadata):
+        print(f"rcv {metadata}")
         filename = os.path.basename(metadata[0])
         filesize = int(metadata[1])
 
@@ -110,8 +111,7 @@ class ServerMessenger(Thread):
                 if requestType == "copy":
                     self.copy(metaData)
                 elif requestType == "write":
-                    print("TOLYA ZAIMPLMENTb")
-                    print(f"rcv {metaData}")
+                    self.write(metaData)
                 elif requestType == "read":
                     print("TOLYA ZAIMPLMENTb")
                     print(f"send {metaData}")
