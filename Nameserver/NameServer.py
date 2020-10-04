@@ -29,7 +29,15 @@ ClientIPs = []
 
 class FilesTree:
     def __init__(self):
-        a = FolderNode("root")
+        self.root = FolderNode("root")
+
+    def getFolderByPath(self, path: str):
+        # TODO CHECK
+        path = path.split("/")
+        currentDir = self.root
+        for directory in path:
+            currentDir = currentDir.getFolder(directory)
+        return currentDir
 
 
 # Folder
@@ -56,6 +64,9 @@ class FolderNode:
 
     def removeFile(self, leaf):
         self.files.remove(leaf)
+
+    def isEmpty(self):
+        return len(self.folders) == 0 and len(self.files) == 0
 
     def __str__(self):
         """
@@ -123,36 +134,53 @@ class StorageDemon:
         pass
 
     def addFileToServer(self, server, fileInfo: FileInfo):
-        # TODO
+        """
+        Add file to serverFiles dictionary
+        Do not send the file
+        """
         if server in self.serversFiles:
             self.serversFiles[server].append(fileInfo)
         else:
             self.serversFiles[server] = [fileInfo]
 
     def delFileFromServer(self, server, fileInfo: FileInfo):
+        """
+        Remove file from serverFiles dictionary
+        Do not delete file from the server itself
+        """
         self.serversFiles[server].remove(fileInfo)
 
     def createFile(self, fileInfo: FileInfo):
+        # choose random servers to handle request
         servers = random.sample(StorageServers.keys(), REPLICAS)
+        # add list of servers as containers of information about file
         fileInfo.addContainers(servers)
+        # add file in fileTree
+        self.fileTree.getFolderByPath(fileInfo.filePath).addFile(fileInfo)
+        # add file to fileDict
         self.fileDict[fileInfo.fileLocation()] = fileInfo
         for server in servers:
+            # add file to servers dict-s
             self.addFileToServer(server, fileInfo)
             print(f"Send CREATE request to storage server with IP:{server}")
+            # send request
             StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode())
 
     def copyFile(self, fileInfo: FileInfo, newFileInfo: FileInfo):
+        # choose servers with such file
         servers = self.fileDict[fileInfo.fileLocation()].storageServers
         newFileInfo.addContainers(servers)
+        self.fileTree.getFolderByPath(newFileInfo.filePath).addFile(newFileInfo)
         self.fileDict[newFileInfo.fileLocation()] = newFileInfo
         for server in servers:
             self.addFileToServer(server, newFileInfo)
             print(f"Send COPY request to storage server with IP:{server}")
-            StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode() +
+            StorageServerMessageSockets[server].send(b"copy" + B_DELIMITER + fileInfo.encode() +
                                                      B_DELIMITER + newFileInfo.encode())
 
     def delFile(self, fileInfo: FileInfo):
         trueFileInfo = self.fileDict[fileInfo.fileLocation()]
+        self.fileTree.getFolderByPath(trueFileInfo.filePath).removeFile(trueFileInfo)
         servers = trueFileInfo.storageServers
         for server in servers:
             self.delFileFromServer(server, fileInfo)
@@ -162,6 +190,21 @@ class StorageDemon:
     def infoFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
         trueFileInfo = self.fileDict[fileInfo.fileLocation()]
         clientSocket.send(trueFileInfo.encode())
+
+    def moveFile(self, fileInfo: FileInfo, newFileInfo: FileInfo):
+        self.copyFile(fileInfo, newFileInfo)
+        self.delFile(fileInfo)
+
+    @staticmethod
+    def initialize(self):
+        for serverSocket in StorageServerMessageSockets.values():
+            serverSocket.send(b"init")
+
+    def readDirectory(self, path, clientSocket: socket.socket):
+        clientSocket.send(self.fileTree.getFolderByPath(path).__str__().encode())
+
+    def delDirectory(self, path, clientSocket: socket.socket):
+        pass
 
 
 class IPPropagator(Thread):
