@@ -36,7 +36,8 @@ class FilesTree:
         path = path.split("/")
         currentDir = self.root
         for directory in path:
-            currentDir = currentDir.getFolder(directory)
+            if directory != "":
+                currentDir = currentDir.getFolder(directory)
         return currentDir
 
 
@@ -57,7 +58,7 @@ class FolderNode:
         for folder in self.folders:
             if folder.name == folderName:
                 return folder
-        return Exception
+        raise Exception
 
     def addFile(self, leaf):
         self.files.append(leaf)
@@ -136,8 +137,7 @@ class StorageDemon:
         # add list of servers as containers of information about file
         fileInfo.addContainers(servers)
         # add file in fileTree
-        #TODO NE RABOTAET
-        #self.fileTree.getFolderByPath(fileInfo.filePath).addFile(fileInfo)
+        self.fileTree.getFolderByPath(fileInfo.filePath).addFile(fileInfo)
         # add file to fileDict
         self.fileDict[fileInfo.fileLocation()] = fileInfo
         for server in servers:
@@ -208,9 +208,12 @@ class StorageDemon:
         self.copyFile(fileInfo, newFileInfo)
         self.delFile(fileInfo)
 
-    @staticmethod
-    def initialize():
+    def initialize(self):
         for serverSocket in StorageServerMessageSockets.values():
+            # Let garbage collector manage it
+            self.serversFiles = dict()
+            self.fileDict = dict()
+            self.fileTree = FilesTree()
             serverSocket.send(b"init")
 
     def readDirectory(self, path, clientSocket: socket.socket):
