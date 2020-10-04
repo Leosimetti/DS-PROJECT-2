@@ -238,7 +238,7 @@ def main():
     # Always print help at the start of the program.
     # In case user only querried help, do not execute anything else
     print_help()
-    if len(sys.argv > 0):
+    if len(sys.argv) > 0:
         if sys.argv[1] in ["--help","-h"]:
             return 0
 
