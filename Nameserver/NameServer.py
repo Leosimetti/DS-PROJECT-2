@@ -209,7 +209,7 @@ class StorageDemon:
         self.delFile(fileInfo)
 
     @staticmethod
-    def initialize(self):
+    def initialize():
         for serverSocket in StorageServerMessageSockets.values():
             serverSocket.send(b"init")
 
@@ -300,6 +300,7 @@ class ClientMessenger(Thread):
                     sleep(1)
                     continue
                 data = msg.decode().split(DELIMITER)
+                print(f"{data}")
                 req, meta = data[0], data[1:]
                 if req == "write":
                     fileName = meta[0]
@@ -307,6 +308,8 @@ class ClientMessenger(Thread):
                     filePath = meta[2]
                     fileInfo = FileInfo(fileName, filePath, fileSize)
                     self.demon.writeFile(fileInfo, self.sock)
+                elif req == "init":
+                    self.demon.initialize()
         except:
             pass
         finally:

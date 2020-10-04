@@ -9,7 +9,7 @@ SERVER_WELCOME_PORT = 5000
 SERVER_HEARTBEAT_PORT = 5001
 CLIENT_MESSAGE_PORT = 5002
 SERVER_MESSAGE_PORT = 5003
-FILE_TRANSFER_PORT  = 5004
+FILE_TRANSFER_PORT = 5004
 DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
 
@@ -34,13 +34,14 @@ class ServerMessenger(Thread):
 
     @staticmethod
     def init():
-        #TODO IT IS NOTE SUPPOSED TO BE LIKE THIS!!!!!!!!!!!
-        #TODO AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        shutil.rmtree(".")
+        # TODO IT IS NOTE SUPPOSED TO BE LIKE THIS!!!!!!!!!!!
+        # TODO AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        shutil.rmtree(os.getcwd())  
 
     def write(self, metadata):
         print(f"rcv {metadata}")
-        filename = os.path.basename(metadata[0])
+        filename = metadata[2] + metadata[1]  # TODO may cause bugs
+        filename = os.path.basename(filename)
         filesize = int(metadata[1])
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -129,7 +130,6 @@ class ServerMessenger(Thread):
                     print(f"Unknown request: {requestType}")
             else:
                 sleep(1)
-
 
 
 def findNameServer():

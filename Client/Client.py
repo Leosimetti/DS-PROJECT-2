@@ -43,8 +43,7 @@ class Client():
 
 
     def init(self):
-        # TODO
-        pass
+        self.soc.send("init".encode())
         # . Initialize the client storage on a new system,
         # should remove any existing file in the dfs root directory and return available size.
         
@@ -116,8 +115,6 @@ class Client():
             sock.connect((ip, FILE_TRANSFER_PORT))
             self._write(sock, filename, size)
             print(f"Completed transfer to IP {ip}")
-        
-
         
 
 
