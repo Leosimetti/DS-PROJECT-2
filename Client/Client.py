@@ -166,10 +166,13 @@ class Client():
 
 
     def parseCommand(self, command):
-        command = command.split()
+        try:
+            command = command.split()
 
-        args = command[1:]
-        command = command[0]
+            args = command[1:]
+            command = command[0]
+        except IndexError:
+            args = []
 
         # TODO
         if command == "init":
@@ -221,7 +224,7 @@ def main():
         try:
             client.parseCommand(command)
         except UnknownCommandException:
-            pass
+            continue
         
 
         # nameServerMessengerSocket.send(b"Hello")
