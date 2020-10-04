@@ -22,7 +22,7 @@ class Client():
         nameServerMessengerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         nameServerMessengerSocket.connect((NameServerIP, CLIENT_MESSAGE_PORT))
 
-        this.soc = nameServerMessengerSocket
+        self.soc = nameServerMessengerSocket
     
 
     def findNameServer(self):
