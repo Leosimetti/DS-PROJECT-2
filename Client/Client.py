@@ -25,7 +25,7 @@ class Client():
         nameServerIP = self.findNameServer()
         # Establish connection
         nameServerMessengerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        nameServerMessengerSocket.connect((nameServerIP, SERVER_WELCOME_PORT))
+        nameServerMessengerSocket.connect((nameServerIP, CLIENT_MESSAGE_PORT))
 
         self.soc = nameServerMessengerSocket
         self.curDir = "/"
@@ -36,7 +36,7 @@ class Client():
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         s.sendto(b'Client try to find name server', ('<broadcast>', SERVER_WELCOME_PORT))
-        data, addr = s.recvfrom(1024)
+        data, addr = s.recvfrom(BUFFER)
         print(f'Name server found: {addr}')
         return addr[0]
 
@@ -67,7 +67,7 @@ class Client():
         pass  # . Should allow to read any file from DFS (download a file from the DFS to the Client side).
 
 
-    def _write(self, sock):
+    def _write(self, sock, filename, size):
         print("!!!Connected to server!!!")  # if it is not displayed ==> OOF
 
         # Counter initialization
@@ -75,9 +75,9 @@ class Client():
         pr_digit = '0'
 
         # Read/Send
-        with open(name, "rb") as f:
+        with open(filename, "rb") as f:
             for i in range(size):
-                snd = f.read(BUFF)
+                snd = f.read(BUFFER)
                 if snd:
                 
                     # To make output less annoying
@@ -86,7 +86,7 @@ class Client():
                         print(msg, " %")
                         pr_digit = msg[0]
 
-                    sas += BUFF
+                    sas += BUFFER
                     sock.sendall(snd)
                 else:
                     print("Transfer complete!!")
@@ -114,7 +114,7 @@ class Client():
         for ip in servers:
             sock = socket.socket()
             sock.connect((ip, CLIENT_MESSAGE_PORT))
-            self._write(sock)
+            self._write(sock, filename, size)
             print(f"Completed transfer to IP {ip}")
         
 

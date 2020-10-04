@@ -234,7 +234,7 @@ class IPPropagator(Thread):
 
     def run(self):
         while True:
-            data, addr = self.sock.recvfrom(1024)
+            data, addr = self.sock.recvfrom(BUFFER)
             print("New entity trying to find name server.")
             self.sock.sendto(b'Hello, new server', addr)
 
