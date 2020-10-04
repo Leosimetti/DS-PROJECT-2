@@ -225,6 +225,8 @@ def main():
             client.parseCommand(command)
         except UnknownCommandException:
             continue
+        except IndexError:
+            print("Provide more arguments")
         
 
         # nameServerMessengerSocket.send(b"Hello")
