@@ -23,6 +23,7 @@ class Client():
         nameServerMessengerSocket.connect((NameServerIP, CLIENT_MESSAGE_PORT))
 
         self.soc = nameServerMessengerSocket
+        self.curDir = "/"
     
 
     def findNameServer(self):
@@ -39,10 +40,20 @@ class Client():
         pass
         # . Initialize the client storage on a new system,
         # should remove any existing file in the dfs root directory and return available size.
+        
+        # I also think it should ask for confirmation.
 
 
+    # Create a new empty file at specified location(?)
     def create(self, filename):
-        pass  # . Should allow to create a new empty file.
+
+        # TODO IMPLEMENT REALITVE LOCATION!!!!
+        path = ""
+
+        msg = DELIMITER.join("create", filename, path)
+        self.soc.send(msg.encode())
+
+        # TODO receive data from servers
 
 
     def read(self):
@@ -69,36 +80,75 @@ class Client():
         print(f"IPS are {rcv1} and {rcv2}")
 
 
-    def delete(self):
-        pass  # . Should allow to delete any file from DFS
+    # Delete given file from DFS
+    def delete(self, filename):
+
+        # TODO IMPLEMENT REALITVE LOCATION!!!!
+        path = ""
+
+        msg = DELIMITER.join("del", filename, path)
+        self.soc.send(msg.encode())
+
+        # TODO get responses from server?
 
 
-    def info(self):
-        pass  # . Should provide information about the file (any useful information - size, node id, etc.)
+    # Get information about the file (any useful information - size, node id, etc.)
+    def info(self, filename):
+        
+        # TODO IMPLEMENT REALITVE LOCATION!!!!
+        path = ""
+
+        msg = DELIMITER.join("info", filename, path)
+        self.soc.send(msg.encode())
+
+        # TODO get responses from server
 
 
     # Copy file from src to dest
-    def copy(self):
-        pass  # . Should allow to create a copy of file.
+    def copy(self, src, dest):
+        
+        msg = DELIMITER.join("copy", src, dest)
+        self.soc.send(msg.encode())
+
+        # TODO get responses from server?
 
 
     # Move file from src to dest
     def move(self, src, dest):
-        pass  # ". Should allow to move a file to the specified path.
+         
+        msg = DELIMITER.join("copy", src, dest)
+        self.soc.send(msg.encode())
+
+        # TODO get responses from server?
 
 
     # Change GayErectory
-    def open_dir(self):
-        pass  # . Should allow to change directory
+    def open_dir(self, path):
+         
+        msg = DELIMITER.join("cd", path)
+        self.soc.send(msg.encode())
+
+        # TODO get responses from server?
 
 
-    # ls
-    def read_dir(self):
-        pass  # . Should return list of files, which are stored in the directory.
+    # Get list of files stored in the directory
+    def read_dir(self, path):
+         
+        msg = DELIMITER.join("ls", path)
+        self.soc.send(msg.encode())
+
+        # TODO get responses from server
 
 
-    def make_dir(self):
-        pass  # . Should allow to create a new directory.
+    # Create a new directory
+    def make_dir(self, dir_name):
+         
+        # TODO not sure about paths and what so ever
+
+        msg = DELIMITER.join("mkdir", dir_name)
+        self.soc.send(msg.encode())
+
+        # TODO get responses from server?
 
 
     def del_dir(self):
