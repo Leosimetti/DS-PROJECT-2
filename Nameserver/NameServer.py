@@ -68,6 +68,7 @@ class StorageDemon:
         pass
 
     def addFileToServer(self, server, fileInfo: FileInfo):
+        # TODO
         if server in self.serversFiles:
             self.serversFiles[server].append(fileInfo)
         else:

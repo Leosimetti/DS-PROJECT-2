@@ -12,98 +12,149 @@ DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
 
 
-def findNameServer():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    s.sendto(b'Client try to find name server', ('<broadcast>', SERVER_WELCOME_PORT))
-    data, addr = s.recvfrom(1024)
-    print(f'Name server found: {addr}')
-    return addr[0]
+class Client():
+
+    # Find and connect to the Namenode
+    def __init__(self):
+        # Find name server
+        NameServerIP = findNameServer()
+        # Establish connection
+        nameServerMessengerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        nameServerMessengerSocket.connect((NameServerIP, CLIENT_MESSAGE_PORT))
+
+        this.soc = nameServerMessengerSocket
+    
+
+    def findNameServer(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        s.sendto(b'Client try to find name server', ('<broadcast>', SERVER_WELCOME_PORT))
+        data, addr = s.recvfrom(1024)
+        print(f'Name server found: {addr}')
+        return addr[0]
 
 
-def init():
-    pass
-    # . Initialize the client storage on a new system,
-    # should remove any existing file in the dfs root directory and return available size.
+    def init(self):
+        pass
+        # . Initialize the client storage on a new system,
+        # should remove any existing file in the dfs root directory and return available size.
 
 
-def create():
-    pass  # . Should allow to create a new empty file.
+    def create(self, filename):
+        pass  # . Should allow to create a new empty file.
 
 
-def read():
-    pass  # . Should allow to read any file from DFS (download a file from the DFS to the Client side).
+    def read(self):
+        pass  # . Should allow to read any file from DFS (download a file from the DFS to the Client side).
 
 
-def write(soc, filename):
-    """
-    sas.py write sasamba.txt
-    """
-    # TODO IMPLEMENT REALITVE LOCATION!!!!
-    size = os.path.getsize(filename)
-    path = ""
+    def write(self, filename):
+        """
+        sas.py write sasamba.txt
+        """
+        # TODO IMPLEMENT REALITVE LOCATION!!!!
+        size = os.path.getsize(filename)
+        path = ""
 
-    # Send metadata first
-    msg = "receive" + DELIMITER + filename + DELIMITER + str(size)+ DELIMITER + path
-    soc.send(msg.encode())
+        # Send metadata first
+        msg = "receive" + DELIMITER + filename + DELIMITER + str(size)+ DELIMITER + path
+        self.soc.send(msg.encode())
 
-    # Wait for data about server
-    rcv1 = soc.recv(BUFFER).decode()
-    rcv2 = soc.recv(BUFFER).decode()
+        # Wait for data about server
+        rcv1 = self.soc.recv(BUFFER).decode()
+        rcv2 = self.soc.recv(BUFFER).decode()
 
-    # Send to this server
-    print(f"IPS are {rcv1} and {rcv2}")
-
-
-def delete():
-    pass  # . Should allow to delete any file from DFS
+        # Send to this server
+        print(f"IPS are {rcv1} and {rcv2}")
 
 
-def info():
-    pass  # . Should provide information about the file (any useful information - size, node id, etc.)
+    def delete(self):
+        pass  # . Should allow to delete any file from DFS
 
 
-# Copy file from src to dest
-def copy():
-    pass  # . Should allow to create a copy of file.
+    def info(self):
+        pass  # . Should provide information about the file (any useful information - size, node id, etc.)
 
 
-# Move file from src to dest
-def move(src, dest):
-    pass  # ". Should allow to move a file to the specified path.
+    # Copy file from src to dest
+    def copy(self):
+        pass  # . Should allow to create a copy of file.
 
 
-# Change GayErectory
-def open_dir():
-    pass  # . Should allow to change directory
+    # Move file from src to dest
+    def move(self, src, dest):
+        pass  # ". Should allow to move a file to the specified path.
 
 
-# ls
-def read_dir():
-    pass  # . Should return list of files, which are stored in the directory.
+    # Change GayErectory
+    def open_dir(self):
+        pass  # . Should allow to change directory
 
 
-def make_dir():
-    pass  # . Should allow to create a new directory.
+    # ls
+    def read_dir(self):
+        pass  # . Should return list of files, which are stored in the directory.
 
 
-def del_dir():
-    pass
-    # . Should allow to delete directory.
-    # If the directory contains files the system should ask for confirmation from the user before deletion.
+    def make_dir(self):
+        pass  # . Should allow to create a new directory.
+
+
+    def del_dir(self):
+        pass
+        # . Should allow to delete directory.
+        # If the directory contains files the system should ask for confirmation from the user before deletion.
+
+
+    def parseCommand(self, command):
+        command = command.split()
+
+        args = command[1:]
+        command = command[0]
+
+        # TODO
+        if command == "init":
+            init()
+        elif command == "create" or command == "make":
+            create(args[0])
+        elif command == "read" or command == "get":
+            pass
+        elif command == "write" or command == "put":
+            pass
+        elif command in ["delete", "del", "rm"]:
+            pass
+        elif command == "info":
+            pass
+        elif command == "copy" or command == "cp":
+            pass
+        elif command == "move" or command == "mv":
+            pass
+        elif command == "open" or command == "cd":
+            pass
+        elif command == "read" or command == "ls":
+            pass
+        elif command == "make_directory" or command == "mkdir":
+            pass
+        elif command == "delete_directory" or command == "del_dir":
+            pass
+        else:
+            raise UnknownCommandException
 
 
 def main():
-    # Find name server
-    NameServerIP = findNameServer()
-    # Establish connection
-    nameServerMessengerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    nameServerMessengerSocket.connect((NameServerIP, CLIENT_MESSAGE_PORT))
+    client = Client()
+
     while True:
-        # TODO change on CLI INPUT
-        nameServerMessengerSocket.send(b"Hello")
-        sleep(3)
+        command = input()
+        try:
+            client.parseCommand(command)
+        except UnknownCommandException:
+            pass
+        
+
+        # nameServerMessengerSocket.send(b"Hello")
+        # sleep(3)
 
 
 if __name__ == '__main__':
