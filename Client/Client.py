@@ -22,10 +22,10 @@ class Client():
     # Find and connect to the Namenode
     def __init__(self):
         # Find name server
-        NameServerIP = self.findNameServer()
+        nameServerIP = self.findNameServer()
         # Establish connection
         nameServerMessengerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        nameServerMessengerSocket.connect((NameServerIP, CLIENT_MESSAGE_PORT))
+        nameServerMessengerSocket.connect((nameServerIP, SERVER_WELCOME_PORT))
 
         self.soc = nameServerMessengerSocket
         self.curDir = "/"
