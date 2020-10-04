@@ -32,18 +32,21 @@ class ServerMessenger(Thread):
         print("Messaging connection established")
         self.sock = sock
 
-    @staticmethod
-    def init():
+
+    def init(self):
         # TODO IT IS NOTE SUPPOSED TO BE LIKE THIS!!!!!!!!!!!
         # TODO AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        shutil.rmtree(os.getcwd())
-        
+        shutil.rmtree(os.getcwd() + "/DFS")
+        os.mkdir("DFS")
+
         free_space = shutil.disk_usage(os.getcwd())[2]
+        self.sock.send("FREE".encode() + B_DELIMITER + str(free_space).encode())
+        print(f"Available space: {free_space}")
 
     def write(self, metadata):
         print(f"rcv {metadata}")
-        filename = metadata[2] + metadata[1]  # TODO may cause bugs
-        filename = os.path.basename(filename)
+        filename = metadata[2] + metadata[0]  # TODO may cause bugs
+        filename = "./DFS/" + os.path.basename(filename)
         filesize = int(metadata[1])
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -145,6 +148,9 @@ def findNameServer():
 
 
 def main():
+
+    os.mkdir("DFS")
+
     # Find name server
     NameServerIP = findNameServer()
     # Start heartbeat

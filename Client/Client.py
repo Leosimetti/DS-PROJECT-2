@@ -110,6 +110,7 @@ class Client():
 
         # Send to this server
         print(f"IPS are {servers}")
+        sleep(1)
         for ip in servers:
             sock = socket.socket()
             sock.connect((ip, FILE_TRANSFER_PORT))
