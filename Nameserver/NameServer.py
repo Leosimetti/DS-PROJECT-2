@@ -142,8 +142,7 @@ class StorageDemon:
         for server in servers:
             # add file to servers dict-s
             self.addFileToServer(server, fileInfo)
-            # TODO
-            clientSocket.send(server.encode() + B_DELIMITER)
+        clientSocket.send(DELIMITER.join(servers).encode())
 
     def addFileToServer(self, server, fileInfo: FileInfo):
         """
