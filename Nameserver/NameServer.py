@@ -328,14 +328,14 @@ class ClientMessenger(Thread):
                     self.demon.writeFile(fileInfo, self.sock)
                 elif req == "init":
                     self.demon.initialize(self.sock)
-                elif req == "delete":
+                elif req == "del":
                     fileName = meta[0]
-                    filePath = meta[2]
+                    filePath = meta[1]
                     fileInfo = FileInfo(fileName, filePath, 0)
                     self.demon.delFile(fileInfo)
                 elif req == "create":
                     fileName = meta[0]
-                    filePath = meta[2]
+                    filePath = meta[1]
                     fileInfo = FileInfo(fileName, filePath, 0)
                     self.demon.createFile(fileInfo)
                 else:

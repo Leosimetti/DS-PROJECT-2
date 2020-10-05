@@ -34,8 +34,6 @@ class ServerMessenger(Thread):
 
 
     def init(self):
-        # TODO IT IS NOTE SUPPOSED TO BE LIKE THIS!!!!!!!!!!!
-        # TODO AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         shutil.rmtree(os.getcwd() + "/DFS")
         os.mkdir("DFS")
 
@@ -76,12 +74,19 @@ class ServerMessenger(Thread):
                     break
 
     @staticmethod
-    def create(metaData):
-        filename = metaData[0]
+    def create(metadata):
+        filename = metadata[2] + metadata[0] # TODO may cause bugs
         print(f"create {filename}")
-        filename = os.path.basename(filename)
+        filename = "./DFS/" + os.path.basename(filename)
         with open(filename, "wb") as f:
             pass
+
+    @staticmethod
+    def delete(metadata):
+        print(f"del {metadata}")
+        filename = metadata[2] + metadata[0]  # TODO may cause bugs
+        filename = "./DFS/" + os.path.basename(filename)
+        os.remove(filename)
 
     @staticmethod
     def deldir(metadata):
@@ -89,8 +94,8 @@ class ServerMessenger(Thread):
 
     @staticmethod
     def copy(metaData):
-        filename = metaData[0]
-        newName = metaData[3]
+        filename = metaData[2] + metaData[0] # TODO may cause bugs
+        newName = metaData[5] + metaData[3] # TODO may cause bugs
 
         if os.path.exists(os.path.basename(filename)):
             original_name = os.path.basename(filename)
@@ -130,7 +135,10 @@ class ServerMessenger(Thread):
                 elif requestType == "init":
                     self.init()
                 elif requestType == "deldir":
-                    self.deldir()
+                    self.deldir(metaData)
+                elif requestType == "del":
+                    self.delete(metaData)
+
                 else:
                     print(f"Unknown request: {requestType}")
             else:

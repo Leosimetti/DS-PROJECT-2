@@ -15,6 +15,7 @@ B_DELIMITER = b"?CON?"
 
 
 class UnknownCommandException(Exception):
+
     pass
 
 
@@ -269,6 +270,7 @@ def main():
         try:
             client.parseCommand(command)
         except UnknownCommandException:
+            print(f"NO SUCH COMMAND: {command} , you IDIOT FUCK YOU BITCH")
             continue
         except IndexError:
             print("Provide more arguments")
