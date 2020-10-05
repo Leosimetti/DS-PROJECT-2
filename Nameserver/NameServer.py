@@ -150,6 +150,11 @@ class StorageDemon:
         listOfFiles.remove(fileInfo)
 
     def initialize(self, clientSocket: socket.socket):
+        """
+        Send request to delete all files from storage servers
+        Purge all data about files
+        Receive information about storage from servers and send that refactored to client
+        """
         space = 0
         for serverSocket in StorageServerMessageSockets.values():
             # Let garbage collector manage it
@@ -163,7 +168,13 @@ class StorageDemon:
         realSpace = space // REPLICAS // (2**20) // 8
         clientSocket.send(str(realSpace).encode())
 
+    # TODO MANAGE STUPID CLIENT THAT WANTS SEND FILE FEW TIMES
+    # TODO MANAGE STUPID CLIENT THAT WANTS DELETE OR COPY NONEXISTING FILE
     def createFile(self, fileInfo: FileInfo):
+        """
+        Send request to create files to StorageServers
+        Add info about file to demon
+        """
         # choose random servers to handle request
         servers = random.sample(StorageServers.keys(), REPLICAS)
         # add list of servers as containers of information about file
@@ -198,6 +209,9 @@ class StorageDemon:
         clientSocket.send(DELIMITER.join(servers).encode())
 
     def delFile(self, fileInfo: FileInfo):
+        """
+        Send request file deletion to
+        """
         trueFileInfo = self.fileDict[fileInfo.fileLocation()]
         self.fileTree.getFolderByPath(trueFileInfo.filePath).removeFile(trueFileInfo)
         servers = trueFileInfo.storageServers
@@ -231,6 +245,7 @@ class StorageDemon:
         clientSocket.send(self.fileTree.getFolderByPath(path).__str__().encode())
 
     def makeDirectory(self, path: str, dirName: str):
+        #
         headDir = self.fileTree.getFolderByPath(path)
         headDir.addFolder(FolderNode(dirName))
 
