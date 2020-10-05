@@ -128,23 +128,8 @@ class FileInfo:
 class StorageDemon:
     def __init__(self):
         self.serversFiles = dict()  # Dict {ServerIP:[FileInfo-s]}.
-        self.fileDict = dict()  # Dict {(fileLocation):FileInfo}
+        self.fileDict = dict()      # Dict {(fileLocation):FileInfo}
         self.fileTree = FilesTree()
-
-    def writeFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
-        # choose random servers to handle request
-        servers = random.sample(StorageServers.keys(), REPLICAS)
-        # add list of servers as containers of information about file
-        fileInfo.addContainers(servers)
-        # add file in fileTree
-        self.fileTree.getFolderByPath(fileInfo.filePath).addFile(fileInfo)
-        # add file to fileDict
-        self.fileDict[fileInfo.fileLocation()] = fileInfo
-        for server in servers:
-            # add file to servers dict-s
-            self.addFileToServer(server, fileInfo)
-            StorageServerMessageSockets[server].send(b"write" + B_DELIMITER + fileInfo.encode())
-        clientSocket.send(DELIMITER.join(servers).encode())
 
     def addFileToServer(self, server, fileInfo: FileInfo):
         """
@@ -163,6 +148,20 @@ class StorageDemon:
         """
         self.serversFiles[server].remove(fileInfo)
 
+    def initialize(self, clientSocket: socket.socket):
+        space = 0
+        for serverSocket in StorageServerMessageSockets.values():
+            # Let garbage collector manage it
+            self.serversFiles = dict()
+            self.fileDict = dict()
+            self.fileTree = FilesTree()
+            serverSocket.send(b"init")
+            data = serverSocket.recv(BUFFER).decode().split(DELIMITER)
+            serverSpace = int(data[1])
+            space += serverSpace
+        realSpace = space // REPLICAS // (2**20) // 8
+        clientSocket.send(str(realSpace).encode())
+
     def createFile(self, fileInfo: FileInfo):
         # choose random servers to handle request
         servers = random.sample(StorageServers.keys(), REPLICAS)
@@ -179,6 +178,38 @@ class StorageDemon:
             # send request
             StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode())
 
+    def readFile(self, fileInfo: FileInfo):
+        pass
+
+    def writeFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
+        # choose random servers to handle request
+        servers = random.sample(StorageServers.keys(), REPLICAS)
+        # add list of servers as containers of information about file
+        fileInfo.addContainers(servers)
+        # add file in fileTree
+        self.fileTree.getFolderByPath(fileInfo.filePath).addFile(fileInfo)
+        # add file to fileDict
+        self.fileDict[fileInfo.fileLocation()] = fileInfo
+        for server in servers:
+            # add file to servers dict-s
+            self.addFileToServer(server, fileInfo)
+            StorageServerMessageSockets[server].send(b"write" + B_DELIMITER + fileInfo.encode())
+        clientSocket.send(DELIMITER.join(servers).encode())
+
+    def delFile(self, fileInfo: FileInfo):
+        trueFileInfo = self.fileDict[fileInfo.fileLocation()]
+        self.fileTree.getFolderByPath(trueFileInfo.filePath).removeFile(trueFileInfo)
+        servers = trueFileInfo.storageServers
+        for server in servers:
+            self.delFileFromServer(server, fileInfo)
+            print(f"Send delete request to storage server with IP:{server}")
+            StorageServerMessageSockets[server].send(b"delete" + B_DELIMITER + fileInfo.encode())
+        del self.fileDict[trueFileInfo.fileLocation()]
+
+    def infoFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
+        trueFileInfo = self.fileDict[fileInfo.fileLocation()]
+        clientSocket.send(trueFileInfo.encode())
+
     def copyFile(self, fileInfo: FileInfo, newFileInfo: FileInfo):
         # choose servers with such file
         servers = self.fileDict[fileInfo.fileLocation()].storageServers
@@ -191,40 +222,15 @@ class StorageDemon:
             StorageServerMessageSockets[server].send(b"copy" + B_DELIMITER + fileInfo.encode() +
                                                      B_DELIMITER + newFileInfo.encode())
 
-    def delFile(self, fileInfo: FileInfo):
-        trueFileInfo = self.fileDict[fileInfo.fileLocation()]
-        self.fileTree.getFolderByPath(trueFileInfo.filePath).removeFile(trueFileInfo)
-        servers = trueFileInfo.storageServers
-        for server in servers:
-            self.delFileFromServer(server, fileInfo)
-            print(f"Send delete request to storage server with IP:{server}")
-            StorageServerMessageSockets[server].send(b"delete" + B_DELIMITER + fileInfo.encode())
-
-    def infoFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
-        trueFileInfo = self.fileDict[fileInfo.fileLocation()]
-        clientSocket.send(trueFileInfo.encode())
-
     def moveFile(self, fileInfo: FileInfo, newFileInfo: FileInfo):
         self.copyFile(fileInfo, newFileInfo)
         self.delFile(fileInfo)
 
-    def initialize(self, clientSocket: socket.socket):
-        space = 0
-
-        for serverSocket in StorageServerMessageSockets.values():
-            # Let garbage collector manage it
-            self.serversFiles = dict()
-            self.fileDict = dict()
-            self.fileTree = FilesTree()
-            serverSocket.send(b"init")
-            data = serverSocket.recv(BUFFER).decode().split(DELIMITER)
-            serverSpace = int(data[1])
-            space += serverSpace
-        realSpace = space // REPLICAS // (2**20) // 8
-        clientSocket.send(str(realSpace).encode())
-
     def readDirectory(self, path, clientSocket: socket.socket):
         clientSocket.send(self.fileTree.getFolderByPath(path).__str__().encode())
+
+    def makeDirectory(self, path: str, dirName: str):
+        pass
 
     def delDirectory(self, path):
         directory = self.fileTree.getFolderByPath(path)
@@ -321,6 +327,13 @@ class ClientMessenger(Thread):
                     self.demon.writeFile(fileInfo, self.sock)
                 elif req == "init":
                     self.demon.initialize(self.sock)
+                elif req == "delete":
+                    fileName = meta[0]
+                    filePath = meta[2]
+                    fileInfo = FileInfo(fileName, filePath, 0)
+                    self.demon.delFile(fileInfo)
+                else:
+                    print(f"Unknown request: {req}")
         except:
             pass
         finally:
