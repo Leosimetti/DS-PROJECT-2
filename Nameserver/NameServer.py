@@ -146,7 +146,8 @@ class StorageDemon:
         Remove file from serverFiles dictionary
         Do not delete file from the server itself
         """
-        self.serversFiles[server].remove(fileInfo)
+        listOfFiles = self.serversFiles[server]
+        listOfFiles.remove(fileInfo)
 
     def initialize(self, clientSocket: socket.socket):
         space = 0
@@ -201,9 +202,9 @@ class StorageDemon:
         self.fileTree.getFolderByPath(trueFileInfo.filePath).removeFile(trueFileInfo)
         servers = trueFileInfo.storageServers
         for server in servers:
-            self.delFileFromServer(server, fileInfo)
+            self.delFileFromServer(server, trueFileInfo)
             print(f"Send delete request to storage server with IP:{server}")
-            StorageServerMessageSockets[server].send(b"delete" + B_DELIMITER + fileInfo.encode())
+            StorageServerMessageSockets[server].send(b"del" + B_DELIMITER + fileInfo.encode())
         del self.fileDict[trueFileInfo.fileLocation()]
 
     def infoFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
