@@ -230,7 +230,8 @@ class StorageDemon:
         clientSocket.send(self.fileTree.getFolderByPath(path).__str__().encode())
 
     def makeDirectory(self, path: str, dirName: str):
-        pass
+        headDir = self.fileTree.getFolderByPath(path)
+        headDir.addFolder(FolderNode(dirName))
 
     def delDirectory(self, path):
         directory = self.fileTree.getFolderByPath(path)
@@ -332,6 +333,11 @@ class ClientMessenger(Thread):
                     filePath = meta[2]
                     fileInfo = FileInfo(fileName, filePath, 0)
                     self.demon.delFile(fileInfo)
+                elif req == "create":
+                    fileName = meta[0]
+                    filePath = meta[2]
+                    fileInfo = FileInfo(fileName, filePath, 0)
+                    self.demon.createFile(fileInfo)
                 else:
                     print(f"Unknown request: {req}")
         except:
