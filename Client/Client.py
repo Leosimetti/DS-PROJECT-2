@@ -52,7 +52,7 @@ class Client():
         print(f"{msg} [y/n] ", end="")
         ans = ""
         while True:
-            ans = input("->")
+            ans = input()
             if ans in ["Yes", "yes", "y", "Y"]:
                 return True
             if ans in ["No", "no", "n", "N"]:
@@ -66,9 +66,10 @@ class Client():
     def getResponse(self, sock):
         failed_attempts = 0
         while True:
-            # TODO promt user to stop waiting
-            if failed_attempts == 100:
-                print("Waiting for response from server")
+            # If server does not respond for too long, promt user
+            if failed_attempts == 500:
+                if not self.askConfirmation("No response from server. Wait more?"):
+                    return None
                 failed_attempts = 0
 
             response = sock.recv(BUFFER).decode()
@@ -107,10 +108,6 @@ class Client():
         path, filename = self.parsePath(filename)
         msg = DELIMITER.join(["create", filename, path])
         self.soc.send(msg.encode())
-
-        # response = self.getResponse(self.soc)
-        # if response == CONFIRM_MSG:
-        #     print("File successfully created")
 
 
     # Download a file from the DFS
@@ -217,10 +214,6 @@ class Client():
         msg = DELIMITER.join(["del", filename, path])
         self.soc.send(msg.encode())
 
-        # response = self.getResponse(self.soc)
-        # if response == CONFIRM_MSG:
-        #     print("File successfully deleted")
-
     # Get information about the file (any useful information - size, node id, etc.)
     def info(self, filename):
 
@@ -230,8 +223,9 @@ class Client():
         self.soc.send(msg.encode())
 
         response = self.getResponse(self.soc)
-        # TODO parse file info
-        print(response)
+        if response != None:
+            # TODO parse file info
+            print(response)
 
     # Copy file from src to dest
     def copy(self, src, dest):
@@ -242,10 +236,6 @@ class Client():
         msg = DELIMITER.join(["copy", filename, filepath, new_filename, new_filepath])
         self.soc.send(msg.encode())
 
-        # response = self.getResponse(self.soc)
-        # if response == CONFIRM_MSG:
-        #     print("File successfully copied")
-
     # Move file from src to dest
     def move(self, src, dest):
 
@@ -254,10 +244,6 @@ class Client():
 
         msg = DELIMITER.join(["move", filename, filepath, new_filename, new_filepath])
         self.soc.send(msg.encode())
-
-        # response = self.getResponse(self.soc)
-        # if response == CONFIRM_MSG:
-        #     print("File successfully moved")
 
     # Change GayErectory
     def open_dir(self, path):
@@ -268,6 +254,8 @@ class Client():
         self.soc.send(msg.encode())
 
         response = self.getResponse(self.soc)
+        if response == None:
+            return
 
         if response == ERR_MSG:
             print("No such directory")
@@ -281,15 +269,19 @@ class Client():
     # Get list of files stored in the directory
     def read_dir(self, path):
 
+        path = self.getFullPath(path)
+
         msg = DELIMITER.join(["ls", path])
         self.soc.send(msg.encode())
 
         response = self.getResponse(self.soc)
+        if response == None:
+            return
 
-        print("\t".join(response.split(DELIMITER)))
-
-        # for filename in response.split(DELIMITER):
-            # print(filename)
+        if response == ERR_MSG:
+            print("No such directory")
+        else:
+            print("\t".join(response.split(DELIMITER)))
 
     # Create a new directory
     def make_dir(self, dir_name):
@@ -298,11 +290,6 @@ class Client():
 
         msg = DELIMITER.join(["mkdir", dir_name, path])
         self.soc.send(msg.encode())
-
-        # response = self.getResponse(self.soc)
-
-        # if response == CONFIRM_MSG:
-        #     print("Directory successfully created")
 
     # Delete directory
     # If directory contains files, will prompt user for confirmation before deletion.
@@ -314,6 +301,8 @@ class Client():
         self.soc.send(msg.encode())
 
         response = self.getResponse(self.soc)
+        if response == None:
+            return
 
         if response == "folderNotEmpty":
             print("Directory contains some files")
@@ -322,10 +311,6 @@ class Client():
             else:
                 self.soc.send("denyDel".encode())
                 return
-        
-        # response = self.getResponse(self.soc)
-        # if response == CONFIRM_MSG:
-        #     print("Directory successfully deleted")
         
 
     def parseCommand(self, command):
