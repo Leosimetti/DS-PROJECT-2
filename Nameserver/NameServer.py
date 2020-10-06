@@ -168,8 +168,8 @@ class StorageDemon:
         realSpace = space // REPLICAS // (2**20) // 8
         clientSocket.send(str(realSpace).encode())
 
-    # TODO MANAGE STUPID CLIENT THAT WANTS SEND FILE FEW TIMES
-    # TODO MANAGE STUPID CLIENT THAT WANTS DELETE OR COPY NONEXISTING FILE
+    # TODO MANAGE STUPID CLIENT THAT WANTS TO SEND FILE OR DIR FEW TIMES
+    # TODO MANAGE STUPID CLIENT THAT WANTS TO DELETE/COPY/MOVE/READ/GETINFO NONEXISTENT FILE OR DIR
     def createFile(self, fileInfo: FileInfo):
         """
         Send request to create files to StorageServers
@@ -190,8 +190,13 @@ class StorageDemon:
             # send request
             StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode())
 
-    def readFile(self, fileInfo: FileInfo):
-        pass
+    def readFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
+        trueFileInfo = self.fileDict[fileInfo.fileLocation()]
+        servers = trueFileInfo.storageServers
+        for server in servers:
+            print(f"Send read request to storage server with IP:{server}")
+            StorageServerMessageSockets[server].send(b"read" + B_DELIMITER + trueFileInfo.encode())
+        clientSocket.send(DELIMITER.join(servers).encode())
 
     def writeFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
         # choose random servers to handle request
@@ -210,7 +215,8 @@ class StorageDemon:
 
     def delFile(self, fileInfo: FileInfo):
         """
-        Send request file deletion to
+        Send file deletion request to StorageServers
+        Purge info about that file from demon
         """
         trueFileInfo = self.fileDict[fileInfo.fileLocation()]
         self.fileTree.getFolderByPath(trueFileInfo.filePath).removeFile(trueFileInfo)
@@ -222,10 +228,17 @@ class StorageDemon:
         del self.fileDict[trueFileInfo.fileLocation()]
 
     def infoFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
+        """
+        Find file and send information about it to client
+        """
         trueFileInfo = self.fileDict[fileInfo.fileLocation()]
         clientSocket.send(trueFileInfo.encode())
 
     def copyFile(self, fileInfo: FileInfo, newFileInfo: FileInfo):
+        """
+        Send copy request to StorageServers with original file
+        Add info about new copy to demon
+        """
         # choose servers with such file
         servers = self.fileDict[fileInfo.fileLocation()].storageServers
         newFileInfo.addContainers(servers)
@@ -238,17 +251,27 @@ class StorageDemon:
                                                      B_DELIMITER + newFileInfo.encode())
 
     def moveFile(self, fileInfo: FileInfo, newFileInfo: FileInfo):
+        """
+        Call copy and delete method
+        (@see copyFile and delFile)
+        """
         self.copyFile(fileInfo, newFileInfo)
         self.delFile(fileInfo)
 
     def readDirectory(self, path, clientSocket: socket.socket):
+        """
+        Send information about files and directories in described folder to client
+        """
         clientSocket.send(self.fileTree.getFolderByPath(path).__str__().encode())
 
     def makeDirectory(self, path: str, dirName: str):
-        #
+        """
+        Make directory in demon
+        """
         headDir = self.fileTree.getFolderByPath(path)
         headDir.addFolder(FolderNode(dirName))
 
+    # TODO
     def delDirectory(self, path):
         directory = self.fileTree.getFolderByPath(path)
         for serverSocket in StorageServerMessageSockets.values():
@@ -354,6 +377,39 @@ class ClientMessenger(Thread):
                     filePath = meta[1]
                     fileInfo = FileInfo(fileName, filePath, 0)
                     self.demon.createFile(fileInfo)
+                elif req == "read":
+                    fileName = meta[0]
+                    filePath = meta[1]
+                    fileInfo = FileInfo(fileName, filePath, 0)
+                    pass
+                elif req == "info":
+                    fileName = meta[0]
+                    filePath = meta[1]
+                    fileInfo = FileInfo(fileName, filePath, 0)
+                    self.demon.infoFile(fileInfo, self.sock)
+                elif req == "copy":
+                    fileName = meta[0]
+                    filePath = meta[1]
+                    newFileName = meta[2]
+                    newFilePath = meta[3]
+                    fileInfo = FileInfo(fileName, filePath, 0)
+                    newFileInfo = FileInfo(newFileName, newFilePath, 0)
+                    self.demon.copyFile(fileInfo, newFileInfo)
+                elif req == "move":
+                    fileName = meta[0]
+                    filePath = meta[1]
+                    newFileName = meta[2]
+                    newFilePath = meta[3]
+                    fileInfo = FileInfo(fileName, filePath, 0)
+                    newFileInfo = FileInfo(newFileName, newFilePath, 0)
+                    self.demon.moveFile(fileInfo, newFileInfo)
+                elif req == "ls":
+                    path = meta[0]
+                    self.demon.readDirectory(path, self.sock)
+                elif req == "mkdir":
+                    pass
+                elif req == "del_dir":
+                    pass
                 else:
                     print(f"Unknown request: {req}")
         except:
