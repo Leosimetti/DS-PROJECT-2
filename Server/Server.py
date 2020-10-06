@@ -10,6 +10,7 @@ SERVER_HEARTBEAT_PORT = 5001
 CLIENT_MESSAGE_PORT = 5002
 SERVER_MESSAGE_PORT = 5003
 FILE_TRANSFER_PORT = 5004
+SIBLING_PORT = 5005
 DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
 
@@ -79,7 +80,7 @@ class ServerMessenger(Thread):
 
         pass
 
-    def write(self, metadata):
+    def write(self, metadata, PORT):
         print(f"rcv {metadata}")
         filename = metadata[2] + metadata[0]  # TODO may cause bugs
         filename = "./DFS/" + os.path.basename(filename)
@@ -87,7 +88,7 @@ class ServerMessenger(Thread):
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(('', FILE_TRANSFER_PORT))
+        sock.bind(('', PORT))
         sock.listen()
 
         con, addr = sock.accept()
@@ -124,6 +125,7 @@ class ServerMessenger(Thread):
 
     @staticmethod
     def deldir(metadata):
+        #TODO DO TODO
         pass
 
     @staticmethod
@@ -151,6 +153,29 @@ class ServerMessenger(Thread):
         else:
             print("No such file exists")
 
+    @staticmethod
+    def sendSibling(metaData):
+        print(f" Sharing {metaData[1:]} with {metaData[0]}")
+
+        server = metaData[0]
+        filename = metaData[3] + metaData[1]  # TODO may cause bugs
+        size = int(metaData[2])
+
+        sock = socket.socket()
+        sleep(1.488)
+        sock.connect((server, SIBLING_PORT))
+
+        with open(filename, "wb") as f:
+            for i in range(size):
+                rcv = sock.recv(BUFFER)
+                if rcv:
+                    f.write(rcv)
+                else:
+                    print("File download complete!!")
+                    break
+
+
+
     def run(self):
         while True:
             received = self.sock.recv(BUFFER)
@@ -160,7 +185,7 @@ class ServerMessenger(Thread):
                 if requestType == "copy":
                     self.copy(metaData)
                 elif requestType == "write":
-                    self.write(metaData)
+                    self.write(metaData, FILE_TRANSFER_PORT)
                 elif requestType == "read":
                     self.read(metaData)
                 elif requestType == "create":
@@ -171,11 +196,23 @@ class ServerMessenger(Thread):
                     self.deldir(metaData)
                 elif requestType == "del":
                     self.delete(metaData)
+                elif requestType == "serverSend":
+                    self.sendSibling(metaData)
+                elif requestType == "serverReceive":
+                    self.write(metaData[1:], SIBLING_PORT)
 
+                elif requestType == "":
+                    pass
+                elif requestType == "":
+                    pass
+                elif requestType == "":
+                    pass
                 else:
                     print(f"Unknown request: {requestType}")
             else:
                 sleep(1)
+
+
 
 
 def findNameServer():
