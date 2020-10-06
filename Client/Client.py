@@ -101,8 +101,6 @@ class Client():
         print(f"Total free space: {self.soc.recv(BUFFER).decode()} Mb")
         # NOTE: I think it should ask for confirmation
 
-        response = self.getResponse(self.soc)
-
     # Create a new empty file at specified location
     def create(self, filename):
 
@@ -217,9 +215,9 @@ class Client():
         msg = DELIMITER.join(["del", filename, path])
         self.soc.send(msg.encode())
 
-        response = self.getResponse(self.soc)
-        if response == CONFIRM_MSG:
-            print("File successfully deleted")
+        # response = self.getResponse(self.soc)
+        # if response == CONFIRM_MSG:
+        #     print("File successfully deleted")
 
     # Get information about the file (any useful information - size, node id, etc.)
     def info(self, filename):
@@ -242,9 +240,9 @@ class Client():
         msg = DELIMITER.join(["copy", filename, filepath, new_filename, new_filepath])
         self.soc.send(msg.encode())
 
-        response = self.getResponse(self.soc)
-        if response == CONFIRM_MSG:
-            print("File successfully copied")
+        # response = self.getResponse(self.soc)
+        # if response == CONFIRM_MSG:
+        #     print("File successfully copied")
 
     # Move file from src to dest
     def move(self, src, dest):
@@ -255,9 +253,9 @@ class Client():
         msg = DELIMITER.join(["move", filename, filepath, new_filename, new_filepath])
         self.soc.send(msg.encode())
 
-        response = self.getResponse(self.soc)
-        if response == CONFIRM_MSG:
-            print("File successfully moved")
+        # response = self.getResponse(self.soc)
+        # if response == CONFIRM_MSG:
+        #     print("File successfully moved")
 
     # Change GayErectory
     def open_dir(self, path):
@@ -301,8 +299,8 @@ class Client():
 
         response = self.getResponse(self.soc)
 
-        if response == CONFIRM_MSG:
-            print("Directory successfully created")
+        # if response == CONFIRM_MSG:
+        #     print("Directory successfully created")
 
     # Delete directory
     # If directory contains files, will prompt user for confirmation before deletion.
@@ -323,9 +321,9 @@ class Client():
                 self.soc.send("denyDel".encode())
                 return
         
-        response = self.getResponse(self.soc)
-        if response == CONFIRM_MSG:
-            print("Directory successfully deleted")
+        # response = self.getResponse(self.soc)
+        # if response == CONFIRM_MSG:
+        #     print("Directory successfully deleted")
         
 
     def parseCommand(self, command):
