@@ -343,9 +343,23 @@ class StorageDemon:
 
     # TODO CHECK
     def handleServerClose(self, serverIP: str):
+        # Get information about all files that were on that server
         files = self.serversFiles[serverIP]
         for file in files:
+            # Find available servers to save information
+            availableStorageServers = [*StorageServers]
+            for SS in file.storageServers:
+                availableStorageServers.remove(SS)
+            # Delete information about storage server from fileInfo
             file.deleteContainer(serverIP)
+            # Find server with file and server that can receive new replica
+            serverSender: str = random.sample(file.storageServers, 1)[0]
+            serverReceiver: str = random.sample(availableStorageServers, 1)[0]
+            serverSenderSocket: socket.socket = StorageServerMessageSockets[serverSender]
+            serverReceiverSocket: socket.socket = StorageServerMessageSockets[serverReceiver]
+            # Send information about file and corresponding opponent server to storage servers
+            serverSenderSocket.send(serverReceiver.encode() + B_DELIMITER + file.encode())
+            serverReceiverSocket.send(serverSender.encode() + B_DELIMITER + file.encode())
 
 
 class IPPropagator(Thread):
@@ -371,7 +385,6 @@ class HeartListener(Thread):
     def close(self):
         # TODO Move files to be replicated
         self.demon.handleServerClose(self.ip)
-        #
         del StorageServers[self.ip]
         del StorageServerMessageSockets[self.ip]
         print(f"Storage server {self.name}(IP:{self.ip}) disconnected.")
@@ -380,6 +393,7 @@ class HeartListener(Thread):
 
     def run(self):
         try:
+            # Receive heartbeat
             while self.sock.recv(BUFFER):
                 sleep(3)
         except:
