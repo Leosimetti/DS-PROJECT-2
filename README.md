@@ -9,7 +9,7 @@ docker-compose --compatibility up --build
 LEVA <--
 
 --> PRAVA
-
+![FAILURE](https://github.com/Leosimetti/DS-PROJECT-2/blob/main/Server%20failure.gif)
 # Description of communication protocols
 Ports:
 
