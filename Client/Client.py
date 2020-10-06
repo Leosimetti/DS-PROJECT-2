@@ -5,7 +5,7 @@ import os
 import re
 from time import sleep
 import sys
-from math import ceil()
+from math import ceil
 
 BUFFER = 1024
 SERVER_WELCOME_PORT = 5000
@@ -88,6 +88,9 @@ class Client():
                 rcv = sock.recv(BUFFER)
                 if rcv:
                     f.write(rcv)
+                else:
+                    print("File download complete!!")
+                    break
 
     def _write(self, sock, filename, size):
         print("!!!Connected to server!!!")  # if it is not displayed ==> OOF
