@@ -254,6 +254,16 @@ class Client():
         msg = DELIMITER.join(["move", filename, filepath, new_filename, new_filepath])
         self.soc.send(msg.encode())
 
+        response = self.getResponse(self.soc)
+        if response is None:
+            return
+        elif response == ERR_MSG:
+            print("Initial file does not exist")
+        elif response == CONFIRM_MSG:
+            print("File moved successfully")
+        else:
+            print("Smert'")
+
     # Change GayErectory
     def open_dir(self, path):
 
@@ -284,7 +294,7 @@ class Client():
         self.soc.send(msg.encode())
 
         response = self.getResponse(self.soc)
-        if response == None:
+        if response is None:
             return
 
         if response == ERR_MSG:
@@ -300,6 +310,16 @@ class Client():
         msg = DELIMITER.join(["mkdir", dir_name, path])
         self.soc.send(msg.encode())
 
+        response = self.getResponse(self.soc)
+        if response is None:
+            return
+        elif response == ERR_MSG:
+            print("Cannot find path on server")
+        elif response == CONFIRM_MSG:
+            print(f"Directory is created successfully")
+        else:
+            print("Smert'")
+
     # Delete directory
     # If directory contains files, will prompt user for confirmation before deletion.
     def del_dir(self, dir_name):
@@ -310,10 +330,11 @@ class Client():
         self.soc.send(msg.encode())
 
         response = self.getResponse(self.soc)
-        if response == None:
+        if response is None:
             return
-
-        if response == "folderNotEmpty":
+        elif response == ERR_MSG:
+            print("Folder does not exist")
+        elif response == "folderNotEmpty":
             print("Directory contains some files")
             if self.askConfirmation("Are you sure you want to delete it?"):
                 self.soc.send("acceptDel".encode())

@@ -11,7 +11,6 @@ SERVER_MESSAGE_PORT = 5003
 DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
 
-# TODO CHECK 2
 REPLICAS = 3
 
 ERR_MSG = "NO"
@@ -157,7 +156,7 @@ class StorageDemon:
 
     def isFileExists(self, fileInfo: FileInfo):
         try:
-            trueFileInfo = self.fileDict[fileInfo.fileLocation()]
+            _ = self.fileDict[fileInfo.fileLocation()]
             return True
         except:
             return False
@@ -181,8 +180,6 @@ class StorageDemon:
         realSpace = space // REPLICAS // (2**20) // 8
         clientSocket.send(str(realSpace).encode())
 
-    # TODO MANAGE STUPID CLIENT THAT WANTS TO SEND FILE OR DIR FEW TIMES
-    # TODO MANAGE STUPID CLIENT THAT WANTS TO DELETE/COPY/MOVE/READ/GETINFO NONEXISTENT FILE OR DIR
     def createFile(self, fileInfo: FileInfo):
         """
         Send request to create files to StorageServers
@@ -190,7 +187,7 @@ class StorageDemon:
         """
         # Send create request only to servers with same file signature if it is exists
         if self.isFileExists(fileInfo):
-            trueFileInfo = self.fileDict[fileInfo.fileLocation()]
+            trueFileInfo: FileInfo = self.fileDict[fileInfo.fileLocation()]
             # Make it "empty"
             trueFileInfo.fileSize = 0
             servers = trueFileInfo.storageServers
@@ -214,17 +211,27 @@ class StorageDemon:
             StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode())
 
     def readFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
-        try:
+        if self.isFileExists(fileInfo):
             trueFileInfo = self.fileDict[fileInfo.fileLocation()]
             server = random.sample(trueFileInfo.storageServers, 1)[0]
             clientSocket.send(DELIMITER.join([server, str(trueFileInfo.fileSize)]).encode())
             print(f"Send READ to storage server with IP:{server}")
             StorageServerMessageSockets[server].send(b"read" + B_DELIMITER + trueFileInfo.encode())
-        except KeyError:
+        else:
             print(f"No such file {fileInfo}")
             clientSocket.send(B_ERR_MSG)
 
     def writeFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
+        # Send write request only to servers with same file signature if it is exists
+        if self.isFileExists(fileInfo):
+            trueFileInfo: FileInfo = self.fileDict[fileInfo.fileLocation()]
+            trueFileInfo.fileSize = fileInfo.fileSize
+            servers = trueFileInfo.storageServers
+            for server in servers:
+                print(f"Send CREATE request to storage server with IP:{server}")
+                StorageServerMessageSockets[server].send(b"write" + B_DELIMITER + fileInfo.encode())
+            clientSocket.send(DELIMITER.join(servers).encode())
+            return
         # choose random servers to handle request
         servers = random.sample(StorageServers.keys(), REPLICAS)
         # add list of servers as containers of information about file
@@ -244,6 +251,9 @@ class StorageDemon:
         Send file deletion request to StorageServers
         Purge info about that file from demon
         """
+        # If file not exist => do not make anything
+        if not self.isFileExists(fileInfo):
+            return
         trueFileInfo = self.fileDict[fileInfo.fileLocation()]
         self.fileTree.getFolderByPath(trueFileInfo.filePath).removeFile(trueFileInfo)
         servers = trueFileInfo.storageServers
@@ -257,14 +267,25 @@ class StorageDemon:
         """
         Find file and send information about it to client
         """
+        # In case of such file does not exist, send "File not found"
+        if not self.isFileExists(fileInfo):
+            clientSocket.send(b"File not found")
+            return
+        # Find file in demon storage
         trueFileInfo = self.fileDict[fileInfo.fileLocation()]
+        # Send info about file
         clientSocket.send(trueFileInfo.__str__().encode())
 
-    def copyFile(self, fileInfo: FileInfo, newFileInfo: FileInfo):
+    def copyFile(self, fileInfo: FileInfo, newFileInfo: FileInfo, clientSocket: socket.socket):
         """
         Send copy request to StorageServers with original file
         Add info about new copy to demon
         """
+        # If file not exist, notify client about it
+        if not self.isFileExists(fileInfo):
+            clientSocket.send(B_ERR_MSG)
+            return
+        clientSocket.send(B_CONFIRM_MSG)
         # choose servers with such file
         servers = self.fileDict[fileInfo.fileLocation()].storageServers
         newFileInfo.addContainers(servers)
@@ -276,12 +297,12 @@ class StorageDemon:
             StorageServerMessageSockets[server].send(b"copy" + B_DELIMITER + fileInfo.encode() +
                                                      B_DELIMITER + newFileInfo.encode())
 
-    def moveFile(self, fileInfo: FileInfo, newFileInfo: FileInfo):
+    def moveFile(self, fileInfo: FileInfo, newFileInfo: FileInfo, clientSocket: socket.socket):
         """
         Call copy and delete method
         (@see copyFile and delFile)
         """
-        self.copyFile(fileInfo, newFileInfo)
+        self.copyFile(fileInfo, newFileInfo, clientSocket)
         self.delFile(fileInfo)
 
     def openDirectory(self, path: str, clientSocket: socket.socket):
@@ -295,16 +316,25 @@ class StorageDemon:
         """
         Send information about files and directories in described folder to client
         """
-        clientSocket.send(self.fileTree.getFolderByPath(path).__str__().encode())
+        try:
+            clientSocket.send(self.fileTree.getFolderByPath(path).__str__().encode())
+        except:
+            clientSocket.send(B_ERR_MSG)
 
-    def makeDirectory(self, path: str, dirName: str):
+    def makeDirectory(self, path: str, dirName: str, clientSocket: socket.socket):
         """
         Make directory in demon
         """
-        headDir = self.fileTree.getFolderByPath(path)
-        headDir.addFolder(FolderNode(dirName, headDir))
+        try:
+            headDir = self.fileTree.getFolderByPath(path)
+            if dirName in [fld.name for fld in headDir.folders]:
+                pass  # IF directory exist => pass
+            else:
+                headDir.addFolder(FolderNode(dirName, headDir))
+            clientSocket.send(B_CONFIRM_MSG)
+        except:
+            clientSocket.send(B_ERR_MSG)  # Source path does not exist
 
-    # TODO CHECK
     def delDirectory(self, path):
         directory = self.fileTree.getFolderByPath(path)
         headDirectory = directory.head
@@ -324,25 +354,27 @@ class StorageDemon:
         folder.removeAllFiles()
 
     def checkAndDelDirectory(self, path, clientSocket: socket.socket):
-        if self.fileTree.getFolderByPath(path).isEmpty():
-            clientSocket.send(b"folderEmpty")
-            self.delDirectory(path)
-        else:
-            clientSocket.send(b"folderNotEmpty")
-            while True:
-                response = clientSocket.recv(BUFFER)
-                if response != b"":
-                    response = response.decode()
-                    if response == "acceptDel":
-                        self.delDirectory(path)
-                        break
-                    elif response == "denyDel":
-                        break
-                    else:
-                        print(f"Unknown response: {response}")
-                        break
+        try:
+            if self.fileTree.getFolderByPath(path).isEmpty():
+                clientSocket.send(b"folderEmpty")
+                self.delDirectory(path)
+            else:
+                clientSocket.send(b"folderNotEmpty")
+                while True:
+                    response = clientSocket.recv(BUFFER)
+                    if response != b"":
+                        response = response.decode()
+                        if response == "acceptDel":
+                            self.delDirectory(path)
+                            break
+                        elif response == "denyDel":
+                            break
+                        else:
+                            print(f"Unknown response: {response}")
+                            break
+        except:
+            clientSocket.send(B_ERR_MSG)
 
-    # TODO CHECK
     def handleServerClose(self, serverIP: str):
         # Get information about all files that were on that server
         files = self.serversFiles[serverIP]
@@ -503,7 +535,7 @@ class ClientMessenger(Thread):
                     newFilePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     newFileInfo = FileInfo(newFileName, newFilePath, 0)
-                    self.demon.copyFile(fileInfo, newFileInfo)
+                    self.demon.copyFile(fileInfo, newFileInfo, self.sock)
                 elif req == "move":
                     fileName = meta[0]
                     filePath = meta[1]
@@ -515,14 +547,14 @@ class ClientMessenger(Thread):
                     newFilePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     newFileInfo = FileInfo(newFileName, newFilePath, 0)
-                    self.demon.moveFile(fileInfo, newFileInfo)
+                    self.demon.moveFile(fileInfo, newFileInfo, self.sock)
                 elif req == "ls":
                     path = meta[0]
                     self.demon.readDirectory(path, self.sock)
                 elif req == "mkdir":
                     dirName = meta[0]
                     path = meta[1]
-                    self.demon.makeDirectory(path, dirName)
+                    self.demon.makeDirectory(path, dirName, self.sock)
                 elif req == "del_dir":
                     path = meta[0]
                     self.demon.checkAndDelDirectory(path=path, clientSocket=self.sock)
