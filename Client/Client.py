@@ -13,7 +13,8 @@ CLIENT_MESSAGE_PORT = 5002
 FILE_TRANSFER_PORT = 5004
 DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
-ERROR_RESP = "NO"
+ERR_MSG = "NO"
+B_ERR_MSG = b"NO"
 
 
 class UnknownCommandException(Exception):
@@ -74,7 +75,7 @@ class Client():
 
         # Wait for data about servers
         response = self.soc.recv(BUFFER).decode()
-        if response == ERROR_RESP:
+        if response == B_ERR_MSG:
             print(f"No such file found")
             return
         server, size = response.split(DELIMITER)
