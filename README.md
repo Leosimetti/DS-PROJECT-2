@@ -5,12 +5,6 @@ docker-compose --compatibility up --build
 
 # Architectural diagrams
 ![Architectual diagram](https://github.com/Leosimetti/DS-PROJECT-2/blob/main/ArchitectualDiagram.png?raw=true)
-Should changes happen on-the-go?
-
-Should there be a cli??
-
-Should all files be downloaded to the client machine automatically?
-
 
 LEVA <--
 
