@@ -53,7 +53,7 @@ class Client():
                 print("Waiting for response from server")
                 failed_attempts = 0
 
-            response = soc.recv(BUFFER).decode()
+            response = sock.recv(BUFFER).decode()
             if response == "":
                 failed_attempts += 1
                 sleep(0.01)
@@ -63,7 +63,7 @@ class Client():
     # Extract full path and filename from relative path
     def parsePath(self, path):
         full_path = self.getFullPath(path)
-        return = os.path.split(full_path)
+        return os.path.split(full_path)
 
     # Convert relative path into full path
     def getFullPath(self, path):
@@ -246,6 +246,7 @@ class Client():
             print("Ruslan, zaimplement'")
         else:
             self.curDir = path
+            print(f"Directory successfully changed. You are currently at\n{path}")
 
     # Get list of files stored in the directory
     def read_dir(self, path):
@@ -253,7 +254,7 @@ class Client():
         msg = DELIMITER.join(["ls", path])
         self.soc.send(msg.encode())
 
-        # TODO get responses from server
+        response = self.getResponse(self.soc)
 
     # Create a new directory
     def make_dir(self, dir_name):
