@@ -45,7 +45,7 @@ class Client():
         return addr[0]
     
     # Extract full path and filename from relative path
-    def parsePath(path):
+    def parsePath(self, path):
         rel_path, filename = os.path.split(path)
         if rel_path.startswith("/"):
             return rel_path, filename
@@ -107,7 +107,7 @@ class Client():
             print(f"No such file found")
             return
         server, size = response.split(DELIMITER)
-
+        size = int(size)
         sock = socket.socket()
         sock.connect((server, FILE_TRANSFER_PORT))
 
@@ -154,7 +154,7 @@ class Client():
         path, filename = self.parsePath(filename)
 
         # Send metadata first
-        msh = DELIMITER.join("write", filename, str(size), path)
+        msg = DELIMITER.join(["write", filename, str(size), path])
         self.soc.send(msg.encode())
 
         # Wait for data about servers
