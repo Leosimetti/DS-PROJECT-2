@@ -5,6 +5,7 @@ import os
 import re
 from time import sleep
 import sys
+from math import ceil()
 
 BUFFER = 1024
 SERVER_WELCOME_PORT = 5000
@@ -12,6 +13,7 @@ CLIENT_MESSAGE_PORT = 5002
 FILE_TRANSFER_PORT = 5004
 DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
+ERROR_RESP = "NO"
 
 
 class UnknownCommandException(Exception):
@@ -61,9 +63,31 @@ class Client():
 
         # TODO receive data from servers
 
-    def read(self):
-        # TODO
-        pass  # . Should allow to read any file from DFS (download a file from the DFS to the Client side).
+
+    # Download a file from the DFS
+    def read(self, filename):
+        # TODO IMPLEMENT REALITVE LOCATION!!!!
+        path = ""
+
+        msg = DELIMITER.join(["read", filename, path])
+        self.soc.send(msg.encode())
+
+        # Wait for data about servers
+        response = self.soc.recv(BUFFER).decode()
+        if response == ERROR_RESP:
+            print(f"No such file found")
+            return
+        server, size = response.split(DELIMITER)
+
+        sock = socket.socket()
+        sock.connect((server, FILE_TRANSFER_PORT))
+
+        # TODO resolve name collisions
+        with open(filename, "wb") as f:
+            for i in range(ceil(size/BUFFER)):
+                rcv = sock.recv(BUFFER)
+                if rcv:
+                    f.write(rcv)
 
     def _write(self, sock, filename, size):
         print("!!!Connected to server!!!")  # if it is not displayed ==> OOF
@@ -102,7 +126,7 @@ class Client():
         msg = "write" + DELIMITER + filename + DELIMITER + str(size) + DELIMITER + path
         self.soc.send(msg.encode())
 
-        # Wait for data about server
+        # Wait for data about servers
         response = self.soc.recv(BUFFER).decode()
         servers = response.split(DELIMITER)
 
