@@ -46,27 +46,28 @@ class Client():
     
     # Extract full path and filename from relative path
     def parsePath(self, path):
-        rel_path, filename = os.path.split(path)
-        if rel_path.startswith("/"):
-            return rel_path, filename
+        full_path = self.getFullPath(path)
+        return = os.path.split(full_path)
 
-        if rel_path.startswith("./"):
-            rel_path = rel_path[2:]
+    # Convert relative path into full path
+    def getFullPath(self, path):
+        if path.startswith("/"):
+            return path
         
-        full_path = os.path.join(self.curDir, rel_path)
+        if path.startswith("./"):
+            path = path[2:]
+        
+        return os.path.join(self.curDir, path)
 
-        return full_path, filename
-
+    # Initialize the client storage on a new system
+    # Removes all existing files in the DFS root directory and returns available size
     def init(self):
         self.soc.send("init".encode())
 
         print(f"Total free space: {self.soc.recv(BUFFER).decode()} Mb")
-        # . Initialize the client storage on a new system,
-        # should remove any existing file in the dfs root directory and return available size.
+        # NOTE: I think it should ask for confirmation
 
-        # I also think it should ask for confirmation.
-
-    # Create a new empty file at specified location(?)
+    # Create a new empty file at specified location
     def create(self, filename):
 
         path, filename = self.parsePath(filename)
