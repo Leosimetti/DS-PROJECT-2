@@ -258,7 +258,7 @@ class StorageDemon:
         Find file and send information about it to client
         """
         trueFileInfo = self.fileDict[fileInfo.fileLocation()]
-        clientSocket.send(trueFileInfo.encode())
+        clientSocket.send(trueFileInfo.__str__().encode())
 
     def copyFile(self, fileInfo: FileInfo, newFileInfo: FileInfo):
         """
@@ -331,7 +331,8 @@ class StorageDemon:
             clientSocket.send(b"folderNotEmpty")
             while True:
                 response = clientSocket.recv(BUFFER)
-                if response != "":
+                if response != b"":
+                    response = response.decode()
                     if response == "acceptDel":
                         self.delDirectory(path)
                         break
@@ -361,6 +362,8 @@ class StorageDemon:
             # Send information about file and corresponding opponent server to storage servers
             serverSenderSocket.send(b"serverSend" + B_DELIMITER + serverReceiver.encode() + B_DELIMITER + file.encode())
             serverReceiverSocket.send(b"serverReceive" + B_DELIMITER + serverSender.encode() + B_DELIMITER + file.encode())
+        # Delete server from list of servers in demon
+        del self.serversFiles[serverIP]
 
 
 class IPPropagator(Thread):
@@ -384,7 +387,6 @@ class HeartListener(Thread):
         self.demon = storageDemon
 
     def close(self):
-        # TODO Move files to be replicated
         self.demon.handleServerClose(self.ip)
         del StorageServers[self.ip]
         del StorageServerMessageSockets[self.ip]
@@ -511,14 +513,20 @@ class ClientMessenger(Thread):
                     path = meta[0]
                     self.demon.readDirectory(path, self.sock)
                 elif req == "mkdir":
-                    pass
+                    dirName = meta[0]
+                    path = meta[1]
+                    self.demon.makeDirectory(path, dirName)
                 elif req == "del_dir":
-                    pass
+                    path = meta[0]
+                    self.demon.checkAndDelDirectory(path=path, clientSocket=self.sock)
                 elif req == "cd":
                     path = meta[0]
                     self.demon.openDirectory(path, self.sock)
                 else:
                     print(f"Unknown request: {req}")
+                    self.sock.send(B_ERR_MSG)
+                    continue
+                self.sock.send(B_CONFIRM_MSG)
         except:
             pass
         finally:
