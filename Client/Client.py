@@ -108,8 +108,10 @@ class Client():
             return
         server, size = response.split(DELIMITER)
         size = int(size)
+
         sock = socket.socket()
         sock.connect((server, FILE_TRANSFER_PORT))
+        sleep(1)
 
         with open(saveAs, "wb") as f:
             for i in range(ceil(size/BUFFER)):
@@ -293,27 +295,27 @@ class Client():
 def print_help():
     # TODO
     print("List of available commands:\n")
-    print("init: Initialize the client storage on a new system; removes any existing file in the dfs root directory and returns available size.")
-    print("create: Creates a new empty file.")
-    print("read: Download a file from the DFS")
-    print("write: Upload a file to the DFS")
-    print("delete: Delete any file from DFS")
-    print("info: Provide information about the file (size, node id, etc.)")
-    print("copy: Create a copy of a file")
-    print("move: Move a file to the specified path")
-    print("open: Change directory")
-    print("read: Return list of files, which are stored in the directory")
-    print("mkdir: Create a new directory")
-    print("del_dir: Delete directory. If the directory contains files, asks for confirmation before deletion")
+    print("init\tInitialize the client storage on a new system; removes any existing file in the dfs root directory and returns available size.")
+    print("create filename\tCreates a new empty file.")
+    print("read filesrc filedest\tDownload a file from the DFS")
+    print("write filesrc filedest\tUpload a file to the DFS")
+    print("delete filename\tDelete given file from DFS")
+    print("info filename\tProvide information about the file (size, node id, etc.)")
+    print("copy filename\tCreate a copy of a file")
+    print("move filesrc filedest\tMove a file to the specified path")
+    print("open path\tChange directory")
+    print("read\tReturn list of files, which are stored in the directory")
+    print("mkdir dirname\tCreate a new directory")
+    print("del_dir dirname\tDelete directory. If the directory contains files, asks for confirmation before deletion")
 
 
 def main():
-    # Always print help at the start of the program.
     # In case user only querried help, do not execute anything else
-    print_help()
     if len(sys.argv) > 1:
         if sys.argv[1] in ["--help", "-h"]:
+            print_help()
             return 0
+    print("For help, run this with --help (-h) argument")
 
     client = Client()
 
