@@ -72,10 +72,9 @@ class Client():
 
         msg = DELIMITER.join(["read", filename, path])
         self.soc.send(msg.encode())
-
         # Wait for data about servers
         response = self.soc.recv(BUFFER).decode()
-        if response == B_ERR_MSG:
+        if response == ERR_MSG:
             print(f"No such file found")
             return
         server, size = response.split(DELIMITER)

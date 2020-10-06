@@ -41,6 +41,44 @@ class ServerMessenger(Thread):
         self.sock.send("FREE".encode() + B_DELIMITER + str(free_space).encode())
         print(f"Available space: {free_space//1024//1024//8} Mb")
 
+    def read(self, metadata):
+        print(f"send {metadata}")
+
+        filename = metadata[2] + metadata[0]  # TODO may cause bugs
+        filename = "./DFS/" + os.path.basename(filename)
+        filesize = int(metadata[1])
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind(('', FILE_TRANSFER_PORT))
+        sock.listen()
+
+        con, addr = sock.accept()
+
+        sas = 0
+        pr_digit = '0'
+        # Read/Send
+        with open(filename, "rb") as f:
+            for i in range(filesize):
+                snd = f.read(BUFFER)
+                if snd:
+
+                    # To make output less annoying
+                    msg = str(round(sas / float(filesize) * 100))
+                    if pr_digit != msg[0] and round(sas / float(filesize) * 100) > 9:
+                        print(msg, " %")
+                        pr_digit = msg[0]
+
+                    sas += BUFFER
+                    con.sendall(snd)
+                else:
+                    print("Transfer complete!!")
+                    break
+
+        #TODO also close sockets??
+
+        pass
+
     def write(self, metadata):
         print(f"rcv {metadata}")
         filename = metadata[2] + metadata[0]  # TODO may cause bugs
@@ -54,9 +92,6 @@ class ServerMessenger(Thread):
 
         con, addr = sock.accept()
 
-        # Counter initialization
-        sas = 0.0
-
         # Receive/Write
 
         print("Starting transfer")
@@ -66,12 +101,11 @@ class ServerMessenger(Thread):
                 # Will return zero when done
                 rcv = con.recv(BUFFER)
                 if rcv:
-                    # Write received data
-                    sas += BUFFER
                     f.write(rcv)
                 else:
                     print(f"Transfer of {metadata} complete!!")
                     break
+        #TODO also close sockets??
 
     @staticmethod
     def create(metadata):
@@ -128,8 +162,7 @@ class ServerMessenger(Thread):
                 elif requestType == "write":
                     self.write(metaData)
                 elif requestType == "read":
-                    print("TOLYA ZAIMPLMENTb")
-                    print(f"send {metaData}")
+                    self.read(metaData)
                 elif requestType == "create":
                     self.create(metaData)
                 elif requestType == "init":

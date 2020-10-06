@@ -10,9 +10,12 @@ CLIENT_MESSAGE_PORT = 5002
 SERVER_MESSAGE_PORT = 5003
 DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
+
 # TODO CHECK 2
 REPLICAS = 1
 
+ERR_MSG = "NO"
+B_ERR_MSG = b"NO"
 
 class NameServer:
     def __init__(self):
@@ -191,12 +194,26 @@ class StorageDemon:
             StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode())
 
     def readFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
-        trueFileInfo = self.fileDict[fileInfo.fileLocation()]
-        servers = trueFileInfo.storageServers
-        for server in servers:
-            print(f"Send read request to storage server with IP:{server}")
+# <<<<<<< Updated upstream
+#         trueFileInfo = self.fileDict[fileInfo.fileLocation()]
+#         servers = trueFileInfo.storageServers
+#         for server in servers:
+#             print(f"Send read request to storage server with IP:{server}")
+#             StorageServerMessageSockets[server].send(b"read" + B_DELIMITER + trueFileInfo.encode())
+#         clientSocket.send(DELIMITER.join(servers).encode())
+# =======
+        #TODO RUSLAN NE BEY ZA GOVNOCODE
+
+        try:
+            trueFileInfo = self.fileDict[fileInfo.fileLocation()]
+            print(f"INFO IS {trueFileInfo}")
+            server = trueFileInfo.storageServers[0]
+            clientSocket.send(server.encode() + B_DELIMITER + str(trueFileInfo.fileSize).encode())
+            print(f"Send read to storage server with IP:{server}")
             StorageServerMessageSockets[server].send(b"read" + B_DELIMITER + trueFileInfo.encode())
-        clientSocket.send(DELIMITER.join(servers).encode())
+        except KeyError:
+            print(f"No such file {fileInfo}")
+            clientSocket.send(B_ERR_MSG)
 
     def writeFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
         # choose random servers to handle request
@@ -304,9 +321,12 @@ class HeartListener(Thread):
         self.ip = ip
 
     def close(self):
+
+        #TODO Move files to be replicated
         del StorageServers[self.ip]
         del StorageServerMessageSockets[self.ip]
         print(f"Storage server {self.name}(IP:{self.ip}) disconnected.")
+
         self.sock.close()
 
     def run(self):
@@ -381,6 +401,7 @@ class ClientMessenger(Thread):
                     fileName = meta[0]
                     filePath = meta[1]
                     fileInfo = FileInfo(fileName, filePath, 0)
+                    self.demon.readFile(fileInfo, self.sock)
                     pass
                 elif req == "info":
                     fileName = meta[0]
