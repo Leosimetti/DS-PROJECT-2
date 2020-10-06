@@ -172,7 +172,6 @@ class Client():
                     sas += BUFFER
                     sock.sendall(snd)
                 else:
-                    print("Transfer complete!!")
                     break
 
     # Upload filesrc to DFS as filename
