@@ -386,6 +386,8 @@ class ClientMessenger(Thread):
                     fileName = meta[0]
                     fileSize = int(meta[1])
                     filePath = meta[2]
+                    # TODO DELETE
+                    filePath = ""
                     fileInfo = FileInfo(fileName, filePath, fileSize)
                     self.demon.writeFile(fileInfo, self.sock)
                 elif req == "init":
@@ -393,37 +395,53 @@ class ClientMessenger(Thread):
                 elif req == "del":
                     fileName = meta[0]
                     filePath = meta[1]
+                    # TODO DELETE
+                    filePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     self.demon.delFile(fileInfo)
                 elif req == "create":
                     fileName = meta[0]
                     filePath = meta[1]
+                    # TODO DELETE
+                    filePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     self.demon.createFile(fileInfo)
                 elif req == "read":
                     fileName = meta[0]
                     filePath = meta[1]
+                    # TODO DELETE
+                    filePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     self.demon.readFile(fileInfo, self.sock)
                     pass
                 elif req == "info":
                     fileName = meta[0]
                     filePath = meta[1]
+                    # TODO DELETE
+                    filePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     self.demon.infoFile(fileInfo, self.sock)
                 elif req == "copy":
                     fileName = meta[0]
                     filePath = meta[1]
+                    # TODO DELETE
+                    filePath = ""
                     newFileName = meta[2]
                     newFilePath = meta[3]
+                    # TODO DELETE
+                    newFilePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     newFileInfo = FileInfo(newFileName, newFilePath, 0)
                     self.demon.copyFile(fileInfo, newFileInfo)
                 elif req == "move":
                     fileName = meta[0]
                     filePath = meta[1]
+                    # TODO DELETE
+                    filePath = ""
                     newFileName = meta[2]
                     newFilePath = meta[3]
+                    # TODO DELETE
+                    newFilePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     newFileInfo = FileInfo(newFileName, newFilePath, 0)
                     self.demon.moveFile(fileInfo, newFileInfo)
