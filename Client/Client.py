@@ -44,6 +44,22 @@ class Client():
         print(f'Name server found: {addr}')
         return addr[0]
     
+    # Wait for response and, possibly, abort execution if it takes too long
+    def getResponse(self, sock):
+        failed_attempts = 0
+        while True:
+            # TODO promt user to stop waiting
+            if failed_attempts == 100:
+                print("Waiting for response from server")
+                failed_attempts = 0
+
+            response = soc.recv(BUFFER).decode()
+            if response == "":
+                failed_attempts += 1
+                sleep(0.01)
+            else:
+                return response
+    
     # Extract full path and filename from relative path
     def parsePath(self, path):
         full_path = self.getFullPath(path)
@@ -204,6 +220,11 @@ class Client():
     # Move file from src to dest
     def move(self, src, dest):
 
+        # TODO
+        # Should source contain filename, or pass it separately?
+        # Should destination contain filename?
+        # Should we preserve the filename, or provide a new filename?
+
         msg = DELIMITER.join(["move", src, dest])
         self.soc.send(msg.encode())
 
@@ -212,13 +233,19 @@ class Client():
     # Change GayErectory
     def open_dir(self, path):
 
-        # TODO need consulting from Ruslan
-        # path1, path2 = self.parsePath(path)
+        path = self.getFullPath(path)
 
         msg = DELIMITER.join(["cd", path])
         self.soc.send(msg.encode())
 
-        # TODO get responses from server?
+        response = self.getResponse(self.soc)
+
+        if response == ERR_MSG:
+            print("No such directory")
+        elif response == "":
+            print("Ruslan, zaimplement'")
+        else:
+            self.curDir = path
 
     # Get list of files stored in the directory
     def read_dir(self, path):
