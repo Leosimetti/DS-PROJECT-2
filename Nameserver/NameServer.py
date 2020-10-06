@@ -357,9 +357,10 @@ class StorageDemon:
             serverReceiver: str = random.sample(availableStorageServers, 1)[0]
             serverSenderSocket: socket.socket = StorageServerMessageSockets[serverSender]
             serverReceiverSocket: socket.socket = StorageServerMessageSockets[serverReceiver]
+            print(f"Replicate from server {serverSender} to server {serverReceiver} of file {file}")
             # Send information about file and corresponding opponent server to storage servers
-            serverSenderSocket.send(serverReceiver.encode() + B_DELIMITER + file.encode())
-            serverReceiverSocket.send(serverSender.encode() + B_DELIMITER + file.encode())
+            serverSenderSocket.send(b"serverSend" + B_DELIMITER + serverReceiver.encode() + B_DELIMITER + file.encode())
+            serverReceiverSocket.send(b"serverReceive" + B_DELIMITER + serverSender.encode() + B_DELIMITER + file.encode())
 
 
 class IPPropagator(Thread):
