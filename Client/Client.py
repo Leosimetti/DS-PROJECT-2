@@ -69,8 +69,7 @@ class Client():
     # Create a new empty file at specified location(?)
     def create(self, filename):
 
-        # TODO IMPLEMENT REALITVE LOCATION!!!!
-        path = ""
+        path, filename = self.parsePath(filename)
 
         msg = DELIMITER.join(["create", filename, path])
         self.soc.send(msg.encode())
@@ -79,9 +78,9 @@ class Client():
 
 
     # Download a file from the DFS
-    def read(self, filename):
-        # TODO IMPLEMENT REALITVE LOCATION!!!!
-        path = ""
+    def read(self, filename, saveAs):
+        
+        path, filename = self.parsePath(filename)
 
         msg = DELIMITER.join(["read", filename, path])
         self.soc.send(msg.encode())
@@ -96,7 +95,7 @@ class Client():
         sock.connect((server, FILE_TRANSFER_PORT))
 
         # TODO resolve name collisions
-        with open(filename, "wb") as f:
+        with open(saveAs, "wb") as f:
             for i in range(ceil(size/BUFFER)):
                 rcv = sock.recv(BUFFER)
                 if rcv:
@@ -130,13 +129,13 @@ class Client():
                     print("Transfer complete!!")
                     break
 
-    def write(self, filename):
+    # Upload filesrc to DFS as filename
+    def write(self, filesrc, filename):
         """
         sas.py write sasamba.txt
         """
-        # TODO IMPLEMENT REALITVE LOCATION!!!!
-        size = os.path.getsize(filename)
-        path = ""
+        size = os.path.getsize(filesrc)
+        path, filename = self.parsePath(filename)
 
         # Send metadata first
         msg = "write" + DELIMITER + filename + DELIMITER + str(size) + DELIMITER + path
@@ -152,7 +151,7 @@ class Client():
         for ip in servers:
             sock = socket.socket()
             sock.connect((ip, FILE_TRANSFER_PORT))
-            self._write(sock, filename, size)
+            self._write(sock, filesrc, size)
             print(f"Completed transfer to IP {ip}")
 
     # Delete given file from DFS
@@ -243,10 +242,10 @@ class Client():
             self.create(args[0])
 
         elif command == "read" or command == "get":
-            self.read(args[0])
+            self.read(args[0], args[1])
 
         elif command == "write" or command == "put":
-            self.write(args[0])
+            self.write(args[0], args[1])
 
         elif command in ["delete", "del", "rm"]:
             self.delete(args[0])
