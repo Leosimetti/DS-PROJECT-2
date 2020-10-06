@@ -180,7 +180,7 @@ class Client():
     # Upload filesrc to DFS as filename
     def write(self, filesrc, filename=None):
         
-        if !os.path.exists(filesrc):
+        if not os.path.exists(filesrc):
             print(f"File {filesrc} not found")
             return
         
