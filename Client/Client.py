@@ -171,8 +171,7 @@ class Client():
     # Delete given file from DFS
     def delete(self, filename):
 
-        # TODO IMPLEMENT REALITVE LOCATION!!!!
-        path = ""
+        path, filename = self.parsePath(filename)
 
         msg = DELIMITER.join(["del", filename, path])
         self.soc.send(msg.encode())
@@ -182,8 +181,7 @@ class Client():
     # Get information about the file (any useful information - size, node id, etc.)
     def info(self, filename):
 
-        # TODO IMPLEMENT REALITVE LOCATION!!!!
-        path = ""
+        path, filename = self.parsePath(filename)
 
         msg = DELIMITER.join(["info", filename, path])
         self.soc.send(msg.encode())
@@ -209,7 +207,8 @@ class Client():
     # Change GayErectory
     def open_dir(self, path):
 
-        # What TODO with relative paths?
+        # TODO need consulting from Ruslan
+        # path1, path2 = self.parsePath(path)
 
         msg = DELIMITER.join(["cd", path])
         self.soc.send(msg.encode())
