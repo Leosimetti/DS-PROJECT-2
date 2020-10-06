@@ -362,6 +362,8 @@ class StorageDemon:
             # Send information about file and corresponding opponent server to storage servers
             serverSenderSocket.send(b"serverSend" + B_DELIMITER + serverReceiver.encode() + B_DELIMITER + file.encode())
             serverReceiverSocket.send(b"serverReceive" + B_DELIMITER + serverSender.encode() + B_DELIMITER + file.encode())
+            self.addFileToServer(serverReceiver, file)
+            file.addContainer(serverReceiver)
         # Delete server from list of servers in demon
         del self.serversFiles[serverIP]
 
