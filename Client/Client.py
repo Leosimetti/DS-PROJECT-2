@@ -48,6 +48,19 @@ class Client():
         print(f'Name server found: {addr}')
         return addr[0]
     
+    def askConfirmation(self, msg):
+        print(f"{msg} [y/n] ", end="")
+            ans = ""
+            while True:
+                ans = input()
+                if ans in ["Yes", "yes", "y", "Y"]:
+                    return True
+                if ans in ["No", "no", "n", "N"]:
+                    return False
+                else:
+                    print(f"{msg} [y/n] ", end="")
+                    continue
+    
     # Wait for response and, possibly, abort execution if it takes too long
     # TODO does not handle buffer overflow
     def getResponse(self, sock):
@@ -106,17 +119,8 @@ class Client():
         # Resolve name collisions if there are any
         if os.path.exists(saveAs):
             print(f"File {saveAs} already exists")
-            print("Do you want to overwrite it? [y/n] ", end="")
-            ans = ""
-            while True:
-                ans = input()
-                if ans in ["Yes", "yes", "y", "Y"]:
-                    break
-                if ans in ["No", "no", "n", "N"]:
-                    return
-                else:
-                    print("Do you want to overwrite it? [y/n] ", end="")
-                    continue
+            if not self.askConfirmation("Do you want to overwrite it?"):
+                return
         
         path, filename = self.parsePath(filename)
 
@@ -281,9 +285,9 @@ class Client():
     # Create a new directory
     def make_dir(self, dir_name):
 
-        full_dir_name = self.getFullPath(dir_name)
+        path, dir_name = self.parsePath(dir_name)
 
-        msg = DELIMITER.join(["mkdir", full_dir_name])
+        msg = DELIMITER.join(["mkdir", dir_name, path])
         self.soc.send(msg.encode())
 
         response = self.getResponse(self.soc)
@@ -302,9 +306,15 @@ class Client():
 
         response = self.getResponse(self.soc)
 
-        # TODO delete confirmation
-        # if response == CONFIRM_MSG:
-        #     print("Directory successfully deleted")
+        if response == "folderNotEmpty":
+            print("Directory contains some files")
+            if self.askConfirmation("Are you sure you want to delete it?"):
+                self.soc.send("acceptDel".encode())
+            else:
+                self.soc.send("denyDel".encode())
+                return
+        
+        print("Directory successfully deleted")
         
 
     def parseCommand(self, command):
