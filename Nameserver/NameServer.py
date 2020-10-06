@@ -530,9 +530,7 @@ class ClientMessenger(Thread):
                     self.demon.openDirectory(path, self.sock)
                 else:
                     print(f"Unknown request: {req}")
-                    self.sock.send(B_ERR_MSG)
                     continue
-                self.sock.send(B_CONFIRM_MSG)
         except:
             pass
         finally:
