@@ -98,6 +98,9 @@ class Client():
     def init(self):
         self.soc.send("init".encode())
 
+        # response = self.getResponse(self.soc)
+        # response = response.split(DELIMITER)
+
         print(f"Total free space: {self.soc.recv(BUFFER).decode()} Mb")
         # NOTE: I think it should ask for confirmation
 
@@ -176,10 +179,15 @@ class Client():
                     break
 
     # Upload filesrc to DFS as filename
-    def write(self, filesrc, filename):
+    def write(self, filesrc, filename=None):
         """
         sas.py write sasamba.txt
         """
+        # If second argument was not provided,
+        # Use source's filename
+        if filename == None:
+            _, filename = os.path.split(filesrc)
+        
         size = os.path.getsize(filesrc)
         path, filename = self.parsePath(filename)
 
@@ -314,7 +322,9 @@ class Client():
                 self.soc.send("denyDel".encode())
                 return
         
-        print("Directory successfully deleted")
+        response = self.getResponse(self.soc)
+        if response == CONFIRM_MSG:
+            print("Directory successfully deleted")
         
 
     def parseCommand(self, command):
@@ -337,7 +347,10 @@ class Client():
             self.read(args[0], args[1])
 
         elif command == "write" or command == "put":
-            self.write(args[0], args[1])
+            if len(args == 1):
+                self.write(args[0])
+            else:
+                self.write(args[0], args[1])
 
         elif command in ["delete", "del", "rm"]:
             self.delete(args[0])
