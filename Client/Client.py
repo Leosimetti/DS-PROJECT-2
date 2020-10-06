@@ -236,6 +236,15 @@ class Client():
         msg = DELIMITER.join(["copy", filename, filepath, new_filename, new_filepath])
         self.soc.send(msg.encode())
 
+        response = self.getResponse(self.soc)
+        if response == None:
+            return
+        
+        if response == ERR_MSG:
+            print(f"File {src} does not exist")
+        elif response == CONFIRM_MSG:
+            print("File successfully copied")
+
     # Move file from src to dest
     def move(self, src, dest):
 
