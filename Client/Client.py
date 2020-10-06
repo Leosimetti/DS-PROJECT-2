@@ -45,7 +45,7 @@ class Client():
         return addr[0]
     
     # Extract full path and filename from relative path
-    def parsePath(path):
+    def parsePath(self, path):
         rel_path, filename = os.path.split(path)
         if rel_path.startswith("/"):
             return rel_path, filename
