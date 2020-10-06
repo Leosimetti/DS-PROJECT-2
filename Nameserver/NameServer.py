@@ -296,9 +296,21 @@ class StorageDemon:
 
     def checkAndDelDirectory(self, path, clientSocket: socket.socket):
         if self.fileTree.getFolderByPath(path).isEmpty():
+            clientSocket.send(b"folderEmpty")
             self.delDirectory(path)
         else:
-            clientSocket.send(b"Ebat ti?")
+            clientSocket.send(b"folderNotEmpty")
+            while True:
+                response = clientSocket.recv(BUFFER)
+                if response != "":
+                    if response == "acceptDel":
+                        self.delDirectory(path)
+                        break
+                    elif response == "denyDel":
+                        break
+                    else:
+                        print("Unknown response")
+                        break
 
 
 class IPPropagator(Thread):
