@@ -27,6 +27,8 @@ Ports:
 5003 : Messaging with clients  
 
 5004 : File transfer from SS to client and vice versa
+
+5005 : Replication between SS
 # Provable contribution of each team member
 ### list of good bois
 
