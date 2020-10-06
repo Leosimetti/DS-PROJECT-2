@@ -230,8 +230,7 @@ class Client():
             self.create(args[0])
 
         elif command == "read" or command == "get":
-            # TODO
-            pass
+            self.read(args[0])
 
         elif command == "write" or command == "put":
             self.write(args[0])
@@ -251,7 +250,7 @@ class Client():
         elif command == "open" or command == "cd":
             self.open_dir(args[0])
 
-        elif command == "read" or command == "ls":
+        elif command == "read_dir" or command == "ls":
             self.read_dir(args[0])
 
         elif command == "make_directory" or command == "mkdir":
