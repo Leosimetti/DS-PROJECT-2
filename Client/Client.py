@@ -95,7 +95,9 @@ class Client():
         msg = DELIMITER.join(["create", filename, path])
         self.soc.send(msg.encode())
 
-        # TODO receive data from servers
+        response = self.getResponse(self.soc)
+        if response == CONFIRM_MSG:
+            print("File successfully created")
 
 
     # Download a file from the DFS
@@ -202,7 +204,9 @@ class Client():
         msg = DELIMITER.join(["del", filename, path])
         self.soc.send(msg.encode())
 
-        # TODO get responses from server?
+        response = self.getResponse(self.soc)
+        if response == CONFIRM_MSG:
+            print("File successfully deleted")
 
     # Get information about the file (any useful information - size, node id, etc.)
     def info(self, filename):
@@ -212,7 +216,9 @@ class Client():
         msg = DELIMITER.join(["info", filename, path])
         self.soc.send(msg.encode())
 
-        # TODO get responses from server
+        response = self.getResponse(self.soc)
+        # TODO parse file info
+        print(response)
 
     # Copy file from src to dest
     def copy(self, src, dest):
@@ -223,7 +229,9 @@ class Client():
         msg = DELIMITER.join(["copy", filename, filepath, new_filename, new_filepath])
         self.soc.send(msg.encode())
 
-        # TODO get responses from server?
+        response = self.getResponse(self.soc)
+        if response == CONFIRM_MSG:
+            print("File successfully copied")
 
     # Move file from src to dest
     def move(self, src, dest):
@@ -234,7 +242,9 @@ class Client():
         msg = DELIMITER.join(["move", filename, filepath, new_filename, new_filepath])
         self.soc.send(msg.encode())
 
-        # TODO get responses from server?
+        response = self.getResponse(self.soc)
+        if response == CONFIRM_MSG:
+            print("File successfully moved")
 
     # Change GayErectory
     def open_dir(self, path):
@@ -305,8 +315,8 @@ class Client():
             command = command[0]
         except IndexError:
             args = []
+        
 
-        # TODO
         if command == "init":
             self.init()
 
@@ -341,7 +351,7 @@ class Client():
             self.make_dir(args[0])
 
         elif command == "delete_directory" or command == "del_dir":
-            pass
+            self.del_dir(args[0])
 
         else:
             raise UnknownCommandException
