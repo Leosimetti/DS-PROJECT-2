@@ -26,12 +26,15 @@ class Heart(Thread):
             self.sock.send("ALIVE".encode())
             sleep(3)
 
+def correctPath(name):
+    return name.replace("/", '∫%&FOLD&%∫')
 
 class ServerMessenger(Thread):
     def __init__(self, sock: socket.socket):
         super().__init__()
         print("Messaging connection established")
         self.sock = sock
+
 
 
     def init(self):
@@ -46,6 +49,7 @@ class ServerMessenger(Thread):
         print(f"send {metadata}")
 
         filename = metadata[2] + metadata[0]  # TODO may cause bugs
+        filename = correctPath(filename)
         filename = "./DFS/" + os.path.basename(filename)
         filesize = int(metadata[1])
 
@@ -83,6 +87,7 @@ class ServerMessenger(Thread):
     def write(self, metadata, PORT):
         print(f"rcv {metadata}")
         filename = metadata[2] + metadata[0]  # TODO may cause bugs
+        filename = correctPath(filename)
         filename = "./DFS/" + os.path.basename(filename)
         filesize = int(metadata[1])
 
@@ -113,6 +118,7 @@ class ServerMessenger(Thread):
     @staticmethod
     def create(metadata):
         filename = metadata[2] + metadata[0] # TODO may cause bugs
+        filename = correctPath(filename)
         print(f"create {filename}")
         filename = "./DFS/" + os.path.basename(filename)
         with open(filename, "wb") as f:
@@ -122,18 +128,28 @@ class ServerMessenger(Thread):
     def delete(metadata):
         print(f"del {metadata}")
         filename = metadata[2] + metadata[0]  # TODO may cause bugs
+        filename = correctPath(filename)
         filename = "./DFS/" + os.path.basename(filename)
         os.remove(filename)
 
     @staticmethod
     def deldir(metadata):
-        #TODO DO TODO
-        pass
+        sacrifice_mark = correctPath(metadata[0])
+        for file in os.listdir("./DFS"):
+            if file.startswith(sacrifice_mark):
+                print(f"Removing file {file}")
+                try:
+                    os.remove(file)
+                except:
+                    print(f"Unlucky; no {file}")
+                    pass
 
     @staticmethod
     def copy(metaData):
         filename = metaData[2] + metaData[0] # TODO may cause bugs
+        filename = correctPath(filename)
         newName = metaData[5] + metaData[3] # TODO may cause bugs
+        newName = correctPath(newName)
 
         if os.path.exists(os.path.basename(filename)):
             original_name = os.path.basename(filename)
@@ -161,6 +177,7 @@ class ServerMessenger(Thread):
 
         server = metaData[0]
         filename = metaData[3] + metaData[1]  # TODO may cause bugs
+        filename = correctPath(filename)
         size = int(metaData[2])
 
         sock = socket.socket()
