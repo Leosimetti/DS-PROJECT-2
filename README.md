@@ -4,12 +4,19 @@ docker-compose --compatibility up --build
 ```
 
 # Architectural diagrams
+
+## Overall architecture
 ![Architectual diagram](https://github.com/Leosimetti/DS-PROJECT-2/blob/main/ArchitectualDiagram.png?raw=true)
 
-LEVA <--
+## Storage server failure
+![Architectual diagram](https://github.com/Leosimetti/DS-PROJECT-2/blob/main/Server%20failure.gif)
 
---> PRAVA
-![FAILURE](https://github.com/Leosimetti/DS-PROJECT-2/blob/main/Server%20failure.gif)
+## System initialization
+![Architectual diagram](https://github.com/Leosimetti/DS-PROJECT-2/blob/main/System%20start.gif)
+
+## Writing a file from client
+![Architectual diagram](https://github.com/Leosimetti/DS-PROJECT-2/blob/main/writeGIF.gif)
+
 # Description of communication protocols
 Ports:
 
