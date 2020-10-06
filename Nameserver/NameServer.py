@@ -11,7 +11,7 @@ SERVER_MESSAGE_PORT = 5003
 DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
 
-REPLICAS = 3
+REPLICAS = 1
 
 ERR_MSG = "NO"
 B_ERR_MSG = b"NO"
@@ -79,16 +79,16 @@ class FolderNode:
         String with all info about folders and files.
         """
         if len(self.folders) != 0:
-            result = "Folders: \n\t"
+            result = "│Folders:"
             for folder in self.folders:
-                result += f"{folder.name} "
-            result += "\n"
+                result += f"\n└──{folder.name}"
+            result += "\n\n"
         else:
-            result = ""
+            result = "Directory does not contain any folder\n"
         if len(self.files) != 0:
-            result += "Files: \n\t"
+            result += "│Files:"
             for fileInfo in self.files:
-                result += f"{fileInfo.fileName} "
+                result += f"\n└──{fileInfo.fileName}"
         else:
             result += "Directory does not contain any file"
         return result
@@ -120,7 +120,7 @@ class FileInfo:
         """
         To string method
         """
-        return f"FileName: {self.fileName}, FileSize: {self.fileSize}, FilePath: {self.filePath}\n" \
+        return f"FileName: {self.fileName}, FileSize: {self.fileSize}, FilePath: \\{self.filePath}\n" \
                f"Storage servers IPs: {self.storageServers}"
 
     def encode(self):
@@ -432,7 +432,8 @@ class StorageDemon:
             print(f"Replicate from server {serverSender} to server {serverReceiver} of file {file}")
             # Send information about file and corresponding opponent server to storage servers
             serverSenderSocket.send(b"serverSend" + B_DELIMITER + serverReceiver.encode() + B_DELIMITER + file.encode())
-            serverReceiverSocket.send(b"serverReceive" + B_DELIMITER + serverSender.encode() + B_DELIMITER + file.encode())
+            serverReceiverSocket.send(b"serverReceive" + B_DELIMITER + serverSender.encode()
+                                      + B_DELIMITER + file.encode())
             self.addFileToServer(serverReceiver, file)
             file.addContainer(serverReceiver)
             sleep(0.1488)
@@ -524,8 +525,6 @@ class ClientMessenger(Thread):
                     fileName = meta[0]
                     fileSize = int(meta[1])
                     filePath = meta[2]
-                    # TODO DELETE
-                    filePath = ""
                     fileInfo = FileInfo(fileName, filePath, fileSize)
                     self.demon.writeFile(fileInfo, self.sock)
                 elif req == "init":
@@ -533,53 +532,37 @@ class ClientMessenger(Thread):
                 elif req == "del":
                     fileName = meta[0]
                     filePath = meta[1]
-                    # TODO DELETE
-                    filePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     self.demon.delFile(fileInfo)
                 elif req == "create":
                     fileName = meta[0]
                     filePath = meta[1]
-                    # TODO DELETE
-                    filePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     self.demon.createFile(fileInfo)
                 elif req == "read":
                     fileName = meta[0]
                     filePath = meta[1]
-                    # TODO DELETE
-                    filePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     self.demon.readFile(fileInfo, self.sock)
                     pass
                 elif req == "info":
                     fileName = meta[0]
                     filePath = meta[1]
-                    # TODO DELETE
-                    filePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     self.demon.infoFile(fileInfo, self.sock)
                 elif req == "copy":
                     fileName = meta[0]
                     filePath = meta[1]
-                    # TODO DELETE
-                    filePath = ""
                     newFileName = meta[2]
                     newFilePath = meta[3]
-                    # TODO DELETE
-                    newFilePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     newFileInfo = FileInfo(newFileName, newFilePath, 0)
                     self.demon.copyFile(fileInfo, newFileInfo, self.sock)
                 elif req == "move":
                     fileName = meta[0]
                     filePath = meta[1]
-                    # TODO DELETE
-                    filePath = ""
                     newFileName = meta[2]
                     newFilePath = meta[3]
-                    # TODO DELETE
-                    newFilePath = ""
                     fileInfo = FileInfo(fileName, filePath, 0)
                     newFileInfo = FileInfo(newFileName, newFilePath, 0)
                     self.demon.moveFile(fileInfo, newFileInfo, self.sock)
