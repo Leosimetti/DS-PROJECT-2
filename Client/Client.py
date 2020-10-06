@@ -5,17 +5,21 @@ import os
 import re
 from time import sleep
 import sys
-from math import ceil
+import math
 
 BUFFER = 1024
+
 SERVER_WELCOME_PORT = 5000
 CLIENT_MESSAGE_PORT = 5002
 FILE_TRANSFER_PORT = 5004
+
 DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
+
 ERR_MSG = "NO"
 B_ERR_MSG = b"NO"
-
+CONFIRM_MSG = "YES"
+B_CONFIRM_MSG = b"YES"
 
 class UnknownCommandException(Exception):
 
@@ -45,6 +49,7 @@ class Client():
         return addr[0]
     
     # Wait for response and, possibly, abort execution if it takes too long
+    # TODO does not handle buffer overflow
     def getResponse(self, sock):
         failed_attempts = 0
         while True:
@@ -131,7 +136,7 @@ class Client():
         sleep(1)
 
         with open(saveAs, "wb") as f:
-            for i in range(ceil(size/BUFFER)):
+            for i in range(math.ceil(size/BUFFER)):
                 rcv = sock.recv(BUFFER)
                 if rcv:
                     f.write(rcv)
@@ -242,11 +247,12 @@ class Client():
 
         if response == ERR_MSG:
             print("No such directory")
-        elif response == "":
-            print("Ruslan, zaimplement'")
-        else:
+        elif response == CONFIRM_MSG:
             self.curDir = path
             print(f"Directory successfully changed. You are currently at\n{path}")
+        else:
+            print("Smert'")
+            
 
     # Get list of files stored in the directory
     def read_dir(self, path):
@@ -256,20 +262,39 @@ class Client():
 
         response = self.getResponse(self.soc)
 
+        print("\t".join(response.split(DELIMITER)))
+
+        # for filename in response.split(DELIMITER):
+            # print(filename)
+
     # Create a new directory
     def make_dir(self, dir_name):
 
-        # TODO not sure about paths and what so ever
+        full_dir_name = self.getFullPath(dir_name)
 
-        msg = DELIMITER.join(["mkdir", dir_name])
+        msg = DELIMITER.join(["mkdir", full_dir_name])
         self.soc.send(msg.encode())
 
-        # TODO get responses from server?
+        response = self.getResponse(self.soc)
 
-    def del_dir(self):
-        pass
-        # . Should allow to delete directory.
-        # If the directory contains files the system should ask for confirmation from the user before deletion.
+        if response == CONFIRM_MSG:
+            print("Directory successfully created")
+
+    # Delete directory
+    # If directory contains files, will prompt user for confirmation before deletion.
+    def del_dir(self, dir_name):
+        
+        full_dir_name = self.getFullPath(dir_name)
+
+        msg = DELIMITER.join(["del_dir", full_dir_name])
+        self.soc.send(msg.encode())
+
+        response = self.getResponse(self.soc)
+
+        # TODO delete confirmation
+        # if response == CONFIRM_MSG:
+        #     print("Directory successfully deleted")
+        
 
     def parseCommand(self, command):
         try:
