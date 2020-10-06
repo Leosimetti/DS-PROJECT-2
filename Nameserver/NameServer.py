@@ -120,7 +120,7 @@ class FileInfo:
         """
         To string method
         """
-        return f"FileName: {self.fileName}, FileSize: {self.fileSize}, FilePath: \\{self.filePath}\n" \
+        return f"FileName: {self.fileName}, FileSize: {self.fileSize}, FilePath: {self.filePath}\n" \
                f"Storage servers IPs: {self.storageServers}"
 
     def encode(self):
