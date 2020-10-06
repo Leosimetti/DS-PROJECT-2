@@ -402,19 +402,19 @@ def print_help():
           "and returns available size")
 
     print("create\tCreates a new empty file")
-    print("\tUsage: create filename")
+    print("\tUsage: create/make filename")
     print("\tfilename - name of a file to be created\n")
 
     print("read\tDownload a file from the DFS")
-    print("\tUsage: read filesrc filedest")
+    print("\tUsage: read/get filesrc filedest")
     print("\tfilesrc - path to file on server; filedest - path to store file\n")
 
     print("write\tUpload a file to the DFS")
-    print("\tUsage: write filesrc filedest")
+    print("\tUsage: write/put filesrc [filedest]")
     print("\tfilesrc - file to be uploaded; filedest - path to store file on server\n")
     
     print("delete\tDelete given file from DFS")
-    print("\tUsage: delete filename")
+    print("\tUsage: delete/del/rm filename")
     print("\tfilename - file to be deleted\n")
     
     print("info\tProvide information about the file (size, node id, etc.)")
@@ -422,25 +422,25 @@ def print_help():
     print("\tfilename - path to the file\n")
     
     print("copy\tCreate a copy of a file")
-    print("\tUsage: copy filesrc filedest")
+    print("\tUsage: copy/cp filesrc filedest")
     print("\tfilesrc - file to be copied; filedest - path to copy the file\n")
     
     print("move\tMove a file to the specified path")
-    print("\tUsage: move filesrc filedest")
+    print("\tUsage: move/mv filesrc filedest")
     print("\tfilesrc - file to be moved; filedest - path to move the file\n")
 
     print("open\tChange directory")
-    print("\tUsage: open path")
+    print("\tUsage: open/cd path")
     print("\tpath - new working directory\n")
 
     print("read_dir\tReturn list of files, which are stored in the directory\n")
 
     print("mkdir\tCreate a new directory")
-    print("\tUsage: mkdir dirname")
+    print("\tUsage: make_directory/mkdir dirname")
     print("dirname - name of directory to be created\n")
 
     print("del_dir\tDelete directory. If the directory contains files, asks for confirmation before deletion")
-    print("\tUsage: del_dir dirname")
+    print("\tUsage: delete_directory/del_dir/deldir dirname")
     print("dirname - name of directory to be deleted\n")
 
 def main():
