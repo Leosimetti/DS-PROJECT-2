@@ -79,6 +79,21 @@ class Client():
 
     # Download a file from the DFS
     def read(self, filename, saveAs):
+
+        # Resolve name collisions if there are any
+        if os.path.exists(saveAs):
+            print(f"File {saveAs} already exists")
+            print("Do you want to overwrite it? [y/n] ", end="")
+            ans = ""
+            while True:
+                ans = input()
+                if ans in ["Yes", "yes", "y", "Y"]:
+                    break
+                if ans in ["No", "no", "n", "N"]:
+                    return
+                else:
+                    print("Do you want to overwrite it? [y/n] ", end="")
+                    continue
         
         path, filename = self.parsePath(filename)
 
@@ -94,7 +109,6 @@ class Client():
         sock = socket.socket()
         sock.connect((server, FILE_TRANSFER_PORT))
 
-        # TODO resolve name collisions
         with open(saveAs, "wb") as f:
             for i in range(ceil(size/BUFFER)):
                 rcv = sock.recv(BUFFER)
@@ -138,7 +152,7 @@ class Client():
         path, filename = self.parsePath(filename)
 
         # Send metadata first
-        msg = "write" + DELIMITER + filename + DELIMITER + str(size) + DELIMITER + path
+        msh = DELIMITER.join("write", filename, str(size), path)
         self.soc.send(msg.encode())
 
         # Wait for data about servers
