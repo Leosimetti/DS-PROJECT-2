@@ -299,7 +299,7 @@ class Client():
         msg = DELIMITER.join(["mkdir", dir_name, path])
         self.soc.send(msg.encode())
 
-        response = self.getResponse(self.soc)
+        # response = self.getResponse(self.soc)
 
         # if response == CONFIRM_MSG:
         #     print("Directory successfully created")
