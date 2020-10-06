@@ -381,7 +381,7 @@ class Client:
         elif command == "make_directory" or command == "mkdir":
             self.make_dir(args[0])
 
-        elif command == "delete_directory" or command == "del_dir":
+        elif command in ["delete_directory", "del_dir", "deldir"]:
             self.del_dir(args[0])
 
         elif command == "help":
@@ -397,20 +397,51 @@ class Client:
 def print_help():
     # TODO
     print("List of available commands:\n")
+    
     print("init\tInitialize the client storage on a new system; removes any existing file in the dfs root directory "
-          "and returns available size.")
-    print("create filename\tCreates a new empty file.")
-    print("read filesrc filedest\tDownload a file from the DFS")
-    print("write filesrc filedest\tUpload a file to the DFS")
-    print("delete filename\tDelete given file from DFS")
-    print("info filename\tProvide information about the file (size, node id, etc.)")
-    print("copy filename\tCreate a copy of a file")
-    print("move filesrc filedest\tMove a file to the specified path")
-    print("open path\tChange directory")
-    print("read_dir\tReturn list of files, which are stored in the directory")
-    print("mkdir dirname\tCreate a new directory")
-    print("del_dir dirname\tDelete directory. If the directory contains files, asks for confirmation before deletion")
+          "and returns available size")
 
+    print("create\tCreates a new empty file")
+    print("\tUsage: create filename")
+    print("\tfilename - name of a file to be created\n")
+
+    print("read\tDownload a file from the DFS")
+    print("\tUsage: read filesrc filedest")
+    print("\tfilesrc - path to file on server; filedest - path to store file\n")
+
+    print("write\tUpload a file to the DFS")
+    print("\tUsage: write filesrc filedest")
+    print("\tfilesrc - file to be uploaded; filedest - path to store file on server\n")
+    
+    print("delete\tDelete given file from DFS")
+    print("\tUsage: delete filename")
+    print("\tfilename - file to be deleted\n")
+    
+    print("info\tProvide information about the file (size, node id, etc.)")
+    print("\tUsage: info filename")
+    print("\tfilename - path to the file\n")
+    
+    print("copy\tCreate a copy of a file")
+    print("\tUsage: copy filesrc filedest")
+    print("\tfilesrc - file to be copied; filedest - path to copy the file\n")
+    
+    print("move\tMove a file to the specified path")
+    print("\tUsage: move filesrc filedest")
+    print("\tfilesrc - file to be moved; filedest - path to move the file\n")
+
+    print("open\tChange directory")
+    print("\tUsage: open path")
+    print("\tpath - new working directory\n")
+
+    print("read_dir\tReturn list of files, which are stored in the directory\n")
+
+    print("mkdir\tCreate a new directory")
+    print("\tUsage: mkdir dirname")
+    print("dirname - name of directory to be created\n")
+
+    print("del_dir\tDelete directory. If the directory contains files, asks for confirmation before deletion")
+    print("\tUsage: del_dir dirname")
+    print("dirname - name of directory to be deleted\n")
 
 def main():
     # In case user only querried help, do not execute anything else
