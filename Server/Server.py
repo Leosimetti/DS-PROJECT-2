@@ -231,6 +231,13 @@ def main():
     except:
         pass
 
+    try:
+        shutil.rmtree(os.getcwd() + "/DFS")
+        os.mkdir("DFS")
+    except:
+        pass
+
+
     # Find name server
     NameServerIP = findNameServer()
     # Start heartbeat

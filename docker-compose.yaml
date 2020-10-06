@@ -7,7 +7,7 @@ services:
         depends_on:
             - nameserver
         deploy:
-            replicas: 3
+            replicas: 5
     nameserver:
         build:
             context: ./Nameserver

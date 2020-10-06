@@ -67,8 +67,9 @@ class Client():
         failed_attempts = 0
         while True:
             # If server does not respond for too long, promt user
-            if failed_attempts == 500:
+            if failed_attempts == 300:
                 if not self.askConfirmation("No response from server. Wait more?"):
+                    main()
                     return None
                 failed_attempts = 0
 
@@ -405,7 +406,6 @@ def main():
             continue
         except IndexError:
             print("Provide more arguments")
-
         # nameServerMessengerSocket.send(b"Hello")
         # sleep(3)
 
