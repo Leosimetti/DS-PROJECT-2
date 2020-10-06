@@ -70,7 +70,6 @@ class Client():
     def create(self, filename):
 
         path, filename = self.parsePath(filename)
-
         msg = DELIMITER.join(["create", filename, path])
         self.soc.send(msg.encode())
 
@@ -100,7 +99,10 @@ class Client():
         msg = DELIMITER.join(["read", filename, path])
         self.soc.send(msg.encode())
         # Wait for data about servers
-        response = self.soc.recv(BUFFER).decode()
+        response = self.soc.recv(BUFFER)
+        while response == b"":
+            response = self.soc.recv(BUFFER)
+        response = response.decode()
         if response == ERR_MSG:
             print(f"No such file found")
             return
@@ -291,8 +293,7 @@ class Client():
 def print_help():
     # TODO
     print("List of available commands:\n")
-    print(
-        "init: Initialize the client storage on a new system; removes any existing file in the dfs root directory and returns available size.")
+    print("init: Initialize the client storage on a new system; removes any existing file in the dfs root directory and returns available size.")
     print("create: Creates a new empty file.")
     print("read: Download a file from the DFS")
     print("write: Upload a file to the DFS")

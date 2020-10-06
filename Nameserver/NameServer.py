@@ -105,13 +105,13 @@ class FileInfo:
         """
         return self.fileName, self.filePath
 
-    def addContainer(self, serverIP):
+    def addContainer(self, serverIP: str):
         self.storageServers.add(serverIP)
 
-    def addContainers(self, serverIPs):
+    def addContainers(self, serverIPs: str):
         self.storageServers.update(serverIPs)
 
-    def deleteContainer(self, serverIP):
+    def deleteContainer(self, serverIP: str):
         self.storageServers.remove(serverIP)
 
     def __str__(self):
@@ -194,22 +194,13 @@ class StorageDemon:
             StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode())
 
     def readFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
-# <<<<<<< Updated upstream
-#         trueFileInfo = self.fileDict[fileInfo.fileLocation()]
-#         servers = trueFileInfo.storageServers
-#         for server in servers:
-#             print(f"Send read request to storage server with IP:{server}")
-#             StorageServerMessageSockets[server].send(b"read" + B_DELIMITER + trueFileInfo.encode())
-#         clientSocket.send(DELIMITER.join(servers).encode())
-# =======
         #TODO RUSLAN NE BEY ZA GOVNOCODE
-
         try:
             trueFileInfo = self.fileDict[fileInfo.fileLocation()]
             print(f"INFO IS {trueFileInfo}")
-            server = trueFileInfo.storageServers[0]
-            clientSocket.send(server.encode() + B_DELIMITER + str(trueFileInfo.fileSize).encode())
-            print(f"Send read to storage server with IP:{server}")
+            server = random.sample(trueFileInfo.storageServers, 1)[0]
+            clientSocket.send(DELIMITER.join([server, str(trueFileInfo.fileSize)]).encode())
+            print(f"Send READ to storage server with IP:{server}")
             StorageServerMessageSockets[server].send(b"read" + B_DELIMITER + trueFileInfo.encode())
         except KeyError:
             print(f"No such file {fileInfo}")
