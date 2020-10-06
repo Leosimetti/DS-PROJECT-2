@@ -16,11 +16,8 @@ REPLICAS = 1
 
 ERR_MSG = "NO"
 B_ERR_MSG = b"NO"
-
-class NameServer:
-    def __init__(self):
-        self.StorageServers = {}
-
+CONFIRM_MSG = "YES"
+B_CONFIRM_MSG = b"YES"
 
 # Dict {ServerIP:ServerName}
 StorageServers = {}
@@ -32,7 +29,7 @@ ClientIPs = []
 
 class FilesTree:
     def __init__(self):
-        self.root = FolderNode("root")
+        self.root = FolderNode("root", None)
 
     def getFolderByPath(self, path: str):
         # TODO CHECK
@@ -46,13 +43,15 @@ class FilesTree:
 
 # Folder
 class FolderNode:
-    def __init__(self, name: str):
+    def __init__(self, name: str, head):
         self.name = name
         self.files = []
         self.folders = []
+        self.head = head
 
     def addFolder(self, node):
         self.folders.append(node)
+        node.head = self
 
     def removeFolder(self, node):
         self.folders.remove(node)
@@ -63,11 +62,15 @@ class FolderNode:
                 return folder
         raise Exception
 
-    def addFile(self, leaf):
-        self.files.append(leaf)
+    def addFile(self, leafFile):
+        self.files.append(leafFile)
 
-    def removeFile(self, leaf):
-        self.files.remove(leaf)
+    def removeFile(self, leafFile):
+        self.files.remove(leafFile)
+
+    def removeAllFiles(self):
+        for file in self.files:
+            self.files.remove(file)
 
     def isEmpty(self):
         return len(self.folders) == 0 and len(self.files) == 0
@@ -152,6 +155,13 @@ class StorageDemon:
         listOfFiles = self.serversFiles[server]
         listOfFiles.remove(fileInfo)
 
+    def isFileExists(self, fileInfo: FileInfo):
+        try:
+            trueFileInfo = self.fileDict[fileInfo.fileLocation()]
+            return True
+        except:
+            return False
+
     def initialize(self, clientSocket: socket.socket):
         """
         Send request to delete all files from storage servers
@@ -178,6 +188,16 @@ class StorageDemon:
         Send request to create files to StorageServers
         Add info about file to demon
         """
+        # Send create request only to servers with same file signature if it is exists
+        if self.isFileExists(fileInfo):
+            trueFileInfo = self.fileDict[fileInfo.fileLocation()]
+            # Make it "empty"
+            trueFileInfo.fileSize = 0
+            servers = trueFileInfo.storageServers
+            for server in servers:
+                print(f"Send CREATE request to storage server with IP:{server}")
+                StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode())
+                return
         # choose random servers to handle request
         servers = random.sample(StorageServers.keys(), REPLICAS)
         # add list of servers as containers of information about file
@@ -194,10 +214,8 @@ class StorageDemon:
             StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode())
 
     def readFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
-        #TODO RUSLAN NE BEY ZA GOVNOCODE
         try:
             trueFileInfo = self.fileDict[fileInfo.fileLocation()]
-            print(f"INFO IS {trueFileInfo}")
             server = random.sample(trueFileInfo.storageServers, 1)[0]
             clientSocket.send(DELIMITER.join([server, str(trueFileInfo.fileSize)]).encode())
             print(f"Send READ to storage server with IP:{server}")
@@ -266,6 +284,13 @@ class StorageDemon:
         self.copyFile(fileInfo, newFileInfo)
         self.delFile(fileInfo)
 
+    def openDirectory(self, path: str, clientSocket: socket.socket):
+        try:
+            self.fileTree.getFolderByPath(path)
+            clientSocket.send(B_CONFIRM_MSG)
+        except:
+            clientSocket.send(B_ERR_MSG)
+
     def readDirectory(self, path, clientSocket: socket.socket):
         """
         Send information about files and directories in described folder to client
@@ -277,13 +302,26 @@ class StorageDemon:
         Make directory in demon
         """
         headDir = self.fileTree.getFolderByPath(path)
-        headDir.addFolder(FolderNode(dirName))
+        headDir.addFolder(FolderNode(dirName, headDir))
 
-    # TODO
+    # TODO CHECK
     def delDirectory(self, path):
         directory = self.fileTree.getFolderByPath(path)
+        headDirectory = directory.head
+        self.recursiveDelete(directory)
+        headDirectory.removeFolder(directory)
         for serverSocket in StorageServerMessageSockets.values():
             serverSocket.send(b"delDirectory" + path.encode())
+
+    def recursiveDelete(self, folder: FolderNode):
+        for subFolder in folder.folders:
+            self.recursiveDelete(subFolder)
+            folder.removeFolder(subFolder)
+        for file in folder.files:
+            for storageServer in file.storageServers:
+                self.delFileFromServer(storageServer, file)
+            del self.fileDict[file.fileLocation()]
+        folder.removeAllFiles()
 
     def checkAndDelDirectory(self, path, clientSocket: socket.socket):
         if self.fileTree.getFolderByPath(path).isEmpty():
@@ -300,8 +338,14 @@ class StorageDemon:
                     elif response == "denyDel":
                         break
                     else:
-                        print("Unknown response")
+                        print(f"Unknown response: {response}")
                         break
+
+    # TODO CHECK
+    def handleServerClose(self, serverIP: str):
+        files = self.serversFiles[serverIP]
+        for file in files:
+            file.deleteContainer(serverIP)
 
 
 class IPPropagator(Thread):
@@ -317,15 +361,17 @@ class IPPropagator(Thread):
 
 
 class HeartListener(Thread):
-    def __init__(self, name: str, sock: socket.socket, ip: str):
+    def __init__(self, name: str, sock: socket.socket, ip: str, storageDemon: StorageDemon):
         super().__init__(daemon=True)
         self.name = name
         self.sock = sock
         self.ip = ip
+        self.demon = storageDemon
 
     def close(self):
-
-        #TODO Move files to be replicated
+        # TODO Move files to be replicated
+        self.demon.handleServerClose(self.ip)
+        #
         del StorageServers[self.ip]
         del StorageServerMessageSockets[self.ip]
         print(f"Storage server {self.name}(IP:{self.ip}) disconnected.")
@@ -343,9 +389,10 @@ class HeartListener(Thread):
 
 
 class SSHeartbeatInitializer(Thread):
-    def __init__(self, sock: socket.socket):
+    def __init__(self, sock: socket.socket, storageDemon: StorageDemon):
         super().__init__(daemon=True)
         self.sock = sock
+        self.demon = storageDemon
 
     def run(self):
         serverID = 1
@@ -356,7 +403,7 @@ class SSHeartbeatInitializer(Thread):
             StorageServers[serverIP] = SSName
             print(f"Storage server {SSName}(IP:{serverIP}) connected.")
             serverID += 1
-            HeartListener(SSName, con, serverIP).start()
+            HeartListener(SSName, con, serverIP, self.demon).start()
 
 
 class ClientMessenger(Thread):
@@ -380,7 +427,7 @@ class ClientMessenger(Thread):
                     sleep(1)
                     continue
                 data = msg.decode().split(DELIMITER)
-                print(f"{data}")
+                print(f"Get request information {data} from client: {self.name}")
                 req, meta = data[0], data[1:]
                 if req == "write":
                     fileName = meta[0]
@@ -452,6 +499,9 @@ class ClientMessenger(Thread):
                     pass
                 elif req == "del_dir":
                     pass
+                elif req == "cd":
+                    path = meta[0]
+                    self.demon.openDirectory(path, self.sock)
                 else:
                     print(f"Unknown request: {req}")
         except:
@@ -498,21 +548,22 @@ def main():
     IPPropagationSocket.bind(("", SERVER_WELCOME_PORT))
     IPPropagator(IPPropagationSocket).start()
 
+    # Initialize storage demon
+    demon = StorageDemon()
+
     # TCP welcome socket for initializing Storage Servers heartbeats
     storageServerHeartbeatInitializer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     storageServerHeartbeatInitializer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     storageServerHeartbeatInitializer.bind(('', SERVER_HEARTBEAT_PORT))  # Bind to specified port
     storageServerHeartbeatInitializer.listen()  # Enable connections
-    SSHeartbeatInitializer(storageServerHeartbeatInitializer).start()
+    SSHeartbeatInitializer(storageServerHeartbeatInitializer, demon).start()
 
-    # TCP welcome socket for message data about requests
+    # TCP welcome socket for message data about requests with Storage Servers
     storageServerWelcomeSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     storageServerWelcomeSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     storageServerWelcomeSocket.bind(('', SERVER_MESSAGE_PORT))
     storageServerWelcomeSocket.listen()
     ServerWelcome(storageServerWelcomeSocket).start()
-
-    demon = StorageDemon()
 
     # TCP socket to initiate connections with Clients
     clientWelcomeSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
