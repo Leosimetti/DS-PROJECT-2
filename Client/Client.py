@@ -363,7 +363,7 @@ class Client():
             self.del_dir(args[0])
         
         elif command == "help":
-            self.print_help()
+            print_help()
 
         else:
             raise UnknownCommandException
