@@ -43,6 +43,19 @@ class Client():
         data, addr = s.recvfrom(BUFFER)
         print(f'Name server found: {addr}')
         return addr[0]
+    
+    # Extract full path and filename from relative path
+    def parsePath(path):
+        rel_path, filename = os.path.split(path)
+        if rel_path.startswith("/"):
+            return rel_path, filename
+
+        if rel_path.startswith("./"):
+            rel_path = rel_path[2:]
+        
+        full_path = os.path.join(self.curDir, rel_path)
+
+        return full_path, filename
 
     def init(self):
         self.soc.send("init".encode())
@@ -75,7 +88,7 @@ class Client():
 
         # Wait for data about servers
         response = self.soc.recv(BUFFER).decode()
-        if response == B_ERR_MSG:
+        if response == ERR_MSG:
             print(f"No such file found")
             return
         server, size = response.split(DELIMITER)
