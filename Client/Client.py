@@ -395,7 +395,6 @@ class Client:
 
 
 def print_help():
-    # TODO
     print("List of available commands:\n")
     
     print("init\tInitialize the client storage on a new system; removes any existing file in the dfs root directory "
