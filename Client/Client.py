@@ -407,7 +407,7 @@ def print_help():
     print("copy filename\tCreate a copy of a file")
     print("move filesrc filedest\tMove a file to the specified path")
     print("open path\tChange directory")
-    print("read\tReturn list of files, which are stored in the directory")
+    print("read_dir\tReturn list of files, which are stored in the directory")
     print("mkdir dirname\tCreate a new directory")
     print("del_dir dirname\tDelete directory. If the directory contains files, asks for confirmation before deletion")
 
