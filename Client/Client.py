@@ -52,7 +52,7 @@ class Client():
         print(f"{msg} [y/n] ", end="")
         ans = ""
         while True:
-            ans = input()
+            ans = input("->")
             if ans in ["Yes", "yes", "y", "Y"]:
                 return True
             if ans in ["No", "no", "n", "N"]:
@@ -409,7 +409,7 @@ def main():
     client = Client()
 
     while True:
-        command = input()
+        command = input("->")
         try:
             client.parseCommand(command)
         except UnknownCommandException:
