@@ -50,16 +50,16 @@ class Client():
     
     def askConfirmation(self, msg):
         print(f"{msg} [y/n] ", end="")
-            ans = ""
-            while True:
-                ans = input()
-                if ans in ["Yes", "yes", "y", "Y"]:
-                    return True
-                if ans in ["No", "no", "n", "N"]:
-                    return False
-                else:
-                    print(f"{msg} [y/n] ", end="")
-                    continue
+        ans = ""
+        while True:
+            ans = input()
+            if ans in ["Yes", "yes", "y", "Y"]:
+                return True
+            if ans in ["No", "no", "n", "N"]:
+                return False
+            else:
+                print(f"{msg} [y/n] ", end="")
+                continue
     
     # Wait for response and, possibly, abort execution if it takes too long
     # TODO does not handle buffer overflow
