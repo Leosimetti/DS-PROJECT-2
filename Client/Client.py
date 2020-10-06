@@ -217,7 +217,10 @@ class Client():
     # Copy file from src to dest
     def copy(self, src, dest):
 
-        msg = DELIMITER.join(["copy", src, dest])
+        filepath, filename = self.parsePath(src)
+        new_filepath, new_filename = self.parsePath(dest)
+
+        msg = DELIMITER.join(["copy", filename, filepath, new_filename, new_filepath])
         self.soc.send(msg.encode())
 
         # TODO get responses from server?
@@ -225,12 +228,10 @@ class Client():
     # Move file from src to dest
     def move(self, src, dest):
 
-        # TODO
-        # Should source contain filename, or pass it separately?
-        # Should destination contain filename?
-        # Should we preserve the filename, or provide a new filename?
+        filepath, filename = self.parsePath(src)
+        new_filepath, new_filename = self.parsePath(dest)
 
-        msg = DELIMITER.join(["move", src, dest])
+        msg = DELIMITER.join(["move", filename, filepath, new_filename, new_filepath])
         self.soc.send(msg.encode())
 
         # TODO get responses from server?
