@@ -98,11 +98,10 @@ class Client():
     def init(self):
         self.soc.send("init".encode())
 
-        # response = self.getResponse(self.soc)
-        # response = response.split(DELIMITER)
-
         print(f"Total free space: {self.soc.recv(BUFFER).decode()} Mb")
         # NOTE: I think it should ask for confirmation
+
+        response = self.getResponse(self.soc)
 
     # Create a new empty file at specified location
     def create(self, filename):
@@ -123,6 +122,8 @@ class Client():
         if os.path.exists(saveAs):
             print(f"File {saveAs} already exists")
             if not self.askConfirmation("Do you want to overwrite it?"):
+                # If user does not want to overwrite a file,
+                # Then abort execution
                 return
         
         path, filename = self.parsePath(filename)
@@ -347,7 +348,7 @@ class Client():
             self.read(args[0], args[1])
 
         elif command == "write" or command == "put":
-            if len(args == 1):
+            if len(args) == 1:
                 self.write(args[0])
             else:
                 self.write(args[0], args[1])
