@@ -189,8 +189,10 @@ def findNameServer():
 
 
 def main():
-
-    os.mkdir("DFS")
+    try:
+        os.mkdir("DFS")
+    except:
+        pass
 
     # Find name server
     NameServerIP = findNameServer()
