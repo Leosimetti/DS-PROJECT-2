@@ -108,9 +108,9 @@ class Client():
         msg = DELIMITER.join(["create", filename, path])
         self.soc.send(msg.encode())
 
-        response = self.getResponse(self.soc)
-        if response == CONFIRM_MSG:
-            print("File successfully created")
+        # response = self.getResponse(self.soc)
+        # if response == CONFIRM_MSG:
+        #     print("File successfully created")
 
 
     # Download a file from the DFS
