@@ -138,8 +138,8 @@ class StorageDemon:
 
     def addFileToServer(self, server, fileInfo: FileInfo):
         """
-        Add file to serverFiles dictionary
-        Do not send the file
+        Add file to serverFiles dictionary.
+        Do not send the file.
         """
         if server in self.serversFiles:
             self.serversFiles[server].append(fileInfo)
@@ -148,13 +148,16 @@ class StorageDemon:
 
     def delFileFromServer(self, server, fileInfo: FileInfo):
         """
-        Remove file from serverFiles dictionary
-        Do not delete file from the server itself
+        Remove file from serverFiles dictionary.
+        Do not delete file from the server itself.
         """
         listOfFiles = self.serversFiles[server]
         listOfFiles.remove(fileInfo)
 
     def isFileExists(self, fileInfo: FileInfo):
+        """
+        Check whether the file exists as record in demon.
+        """
         try:
             _ = self.fileDict[fileInfo.fileLocation()]
             return True
@@ -163,9 +166,9 @@ class StorageDemon:
 
     def initialize(self, clientSocket: socket.socket):
         """
-        Send request to delete all files from storage servers
-        Purge all data about files
-        Receive information about storage from servers and send that refactored to client
+        Send the request to delete all files from storage servers.
+        Purge all data about files.
+        Receive information about the storage from servers and send that refactored to the client.
         """
         space = 0
         for serverSocket in StorageServerMessageSockets.values():
@@ -182,8 +185,9 @@ class StorageDemon:
 
     def createFile(self, fileInfo: FileInfo):
         """
-        Send request to create files to StorageServers
-        Add info about file to demon
+        Send request to create files to the StorageServers.
+        Add info about the file to the demon.
+        If file already exist (same fileName and path), replace it with empty copy.
         """
         # Send create request only to servers with same file signature if it is exists
         if self.isFileExists(fileInfo):
@@ -211,6 +215,10 @@ class StorageDemon:
             StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode())
 
     def readFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
+        """
+        Send file from storage server to client via informing each other about necessary info.
+        If file does not exist, send error message to client.
+        """
         if self.isFileExists(fileInfo):
             trueFileInfo = self.fileDict[fileInfo.fileLocation()]
             server = random.sample(trueFileInfo.storageServers, 1)[0]
@@ -222,6 +230,11 @@ class StorageDemon:
             clientSocket.send(B_ERR_MSG)
 
     def writeFile(self, fileInfo: FileInfo, clientSocket: socket.socket):
+        """
+        Send file from client to storage server via informing each other about necessary info.
+        Add record about file to demon.
+        If file is already exists (same fileName and path), replace it with sent file.
+        """
         # Send write request only to servers with same file signature if it is exists
         if self.isFileExists(fileInfo):
             trueFileInfo: FileInfo = self.fileDict[fileInfo.fileLocation()]
@@ -306,6 +319,11 @@ class StorageDemon:
         self.delFile(fileInfo)
 
     def openDirectory(self, path: str, clientSocket: socket.socket):
+        """
+        Check whether directory exist.
+        If directory exists, send B_CONFIRM_MSG to client.
+        Send B_ERR_MSG otherwise.
+        """
         try:
             self.fileTree.getFolderByPath(path)
             clientSocket.send(B_CONFIRM_MSG)
@@ -314,7 +332,8 @@ class StorageDemon:
 
     def readDirectory(self, path, clientSocket: socket.socket):
         """
-        Send information about files and directories in described folder to client
+        Send information about files and directories in described folder to client.
+        If file does not exist, send B_ERR_MSG to client
         """
         try:
             clientSocket.send(self.fileTree.getFolderByPath(path).__str__().encode())
@@ -323,7 +342,8 @@ class StorageDemon:
 
     def makeDirectory(self, path: str, dirName: str, clientSocket: socket.socket):
         """
-        Make directory in demon
+        Make directory in demon.
+        If path is not correct, send B_ERR_MSG to client. (B_CONFIRM_MSG if it exist)
         """
         try:
             headDir = self.fileTree.getFolderByPath(path)
@@ -336,6 +356,10 @@ class StorageDemon:
             clientSocket.send(B_ERR_MSG)  # Source path does not exist
 
     def delDirectory(self, path):
+        """
+        Delete directory from demon.
+        Send delete directory request to storage servers.
+        """
         directory = self.fileTree.getFolderByPath(path)
         headDirectory = directory.head
         self.recursiveDelete(directory)
@@ -344,6 +368,9 @@ class StorageDemon:
             serverSocket.send(b"deldir" + B_DELIMITER + path.encode())
 
     def recursiveDelete(self, folder: FolderNode):
+        """
+        Delete inside files and folders in specified folder via recursion
+        """
         for subFolder in folder.folders:
             self.recursiveDelete(subFolder)
             folder.removeFolder(subFolder)
@@ -354,6 +381,11 @@ class StorageDemon:
         folder.removeAllFiles()
 
     def checkAndDelDirectory(self, path, clientSocket: socket.socket):
+        """
+        If target folder is empty, delete it.
+        If target folder is not empty, ask user about confirmation and delete it if user agree.
+        If target folder does not exist, send B_ERR_MSG to client.
+        """
         try:
             if self.fileTree.getFolderByPath(path).isEmpty():
                 clientSocket.send(b"folderEmpty")
@@ -376,6 +408,9 @@ class StorageDemon:
             clientSocket.send(B_ERR_MSG)
 
     def handleServerClose(self, serverIP: str):
+        """
+        Send all files that was on specified server to another server without that file.
+        """
         # Get information about all files that were on that server
         files = self.serversFiles[serverIP]
         print(f"ServerIP of disconnected server: {serverIP}")

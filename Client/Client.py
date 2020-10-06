@@ -1,8 +1,5 @@
 import socket
-from threading import Thread
-import random
 import os
-import re
 from time import sleep
 import sys
 import math
@@ -21,12 +18,12 @@ B_ERR_MSG = b"NO"
 CONFIRM_MSG = "YES"
 B_CONFIRM_MSG = b"YES"
 
-class UnknownCommandException(Exception):
 
+class UnknownCommandException(Exception):
     pass
 
 
-class Client():
+class Client:
 
     # Find and connect to the Namenode
     def __init__(self):
@@ -47,10 +44,9 @@ class Client():
         data, addr = s.recvfrom(BUFFER)
         print(f'Name server found: {addr}')
         return addr[0]
-    
+
     def askConfirmation(self, msg):
         print(f"{msg} [y/n] ", end="")
-        ans = ""
         while True:
             ans = input()
             if ans in ["Yes", "yes", "y", "Y"]:
@@ -60,7 +56,7 @@ class Client():
             else:
                 print(f"{msg} [y/n] ", end="")
                 continue
-    
+
     # Wait for response and, possibly, abort execution if it takes too long
     # TODO does not handle buffer overflow
     def getResponse(self, sock):
@@ -79,7 +75,7 @@ class Client():
                 sleep(0.01)
             else:
                 return response
-    
+
     # Extract full path and filename from relative path
     def parsePath(self, path):
         full_path = self.getFullPath(path)
@@ -89,10 +85,10 @@ class Client():
     def getFullPath(self, path):
         if path.startswith("/"):
             return path
-        
+
         if path.startswith("./"):
             path = path[2:]
-        
+
         return os.path.join(self.curDir, path)
 
     # Initialize the client storage on a new system
@@ -110,7 +106,6 @@ class Client():
         msg = DELIMITER.join(["create", filename, path])
         self.soc.send(msg.encode())
 
-
     # Download a file from the DFS
     def read(self, filename, saveAs):
 
@@ -121,7 +116,7 @@ class Client():
                 # If user does not want to overwrite a file,
                 # Then abort execution
                 return
-        
+
         path, filename = self.parsePath(filename)
 
         msg = DELIMITER.join(["read", filename, path])
@@ -142,7 +137,7 @@ class Client():
         sleep(1)
 
         with open(saveAs, "wb") as f:
-            for i in range(math.ceil(size/BUFFER)):
+            for i in range(math.ceil(size / BUFFER)):
                 rcv = sock.recv(BUFFER)
                 if rcv:
                     f.write(rcv)
@@ -176,16 +171,16 @@ class Client():
 
     # Upload filesrc to DFS as filename
     def write(self, filesrc, filename=None):
-        
+
         if not os.path.exists(filesrc):
             print(f"File {filesrc} not found")
             return
-        
+
         # If second argument was not provided,
         # Use source's filename
-        if filename == None:
+        if filename is None:
             _, filename = os.path.split(filesrc)
-        
+
         size = os.path.getsize(filesrc)
         path, filename = self.parsePath(filename)
 
@@ -223,7 +218,7 @@ class Client():
         self.soc.send(msg.encode())
 
         response = self.getResponse(self.soc)
-        if response != None:
+        if response is not None:
             # TODO parse file info
             print(response)
 
@@ -237,9 +232,9 @@ class Client():
         self.soc.send(msg.encode())
 
         response = self.getResponse(self.soc)
-        if response == None:
+        if response is None:
             return
-        
+
         if response == ERR_MSG:
             print(f"File {src} does not exist")
         elif response == CONFIRM_MSG:
@@ -273,7 +268,7 @@ class Client():
         self.soc.send(msg.encode())
 
         response = self.getResponse(self.soc)
-        if response == None:
+        if response is None:
             return
 
         if response == ERR_MSG:
@@ -283,7 +278,6 @@ class Client():
             print(f"Directory successfully changed. You are currently at\n{path}")
         else:
             print("Smert'")
-            
 
     # Get list of files stored in the directory
     def read_dir(self, path):
@@ -323,7 +317,7 @@ class Client():
     # Delete directory
     # If directory contains files, will prompt user for confirmation before deletion.
     def del_dir(self, dir_name):
-        
+
         full_dir_name = self.getFullPath(dir_name)
 
         msg = DELIMITER.join(["del_dir", full_dir_name])
@@ -341,7 +335,6 @@ class Client():
             else:
                 self.soc.send("denyDel".encode())
                 return
-        
 
     def parseCommand(self, command):
         try:
@@ -351,7 +344,6 @@ class Client():
             command = command[0]
         except IndexError:
             args = []
-        
 
         if command == "init":
             self.init()
@@ -391,7 +383,7 @@ class Client():
 
         elif command == "delete_directory" or command == "del_dir":
             self.del_dir(args[0])
-        
+
         elif command == "help":
             print_help()
 
@@ -405,7 +397,8 @@ class Client():
 def print_help():
     # TODO
     print("List of available commands:\n")
-    print("init\tInitialize the client storage on a new system; removes any existing file in the dfs root directory and returns available size.")
+    print("init\tInitialize the client storage on a new system; removes any existing file in the dfs root directory "
+          "and returns available size.")
     print("create filename\tCreates a new empty file.")
     print("read filesrc filedest\tDownload a file from the DFS")
     print("write filesrc filedest\tUpload a file to the DFS")
