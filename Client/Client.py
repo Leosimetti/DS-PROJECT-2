@@ -179,9 +179,11 @@ class Client():
 
     # Upload filesrc to DFS as filename
     def write(self, filesrc, filename=None):
-        """
-        sas.py write sasamba.txt
-        """
+        
+        if !os.path.exists(filesrc):
+            print(f"File {filesrc} not found")
+            return
+        
         # If second argument was not provided,
         # Use source's filename
         if filename == None:
