@@ -364,7 +364,8 @@ class Client():
         
         elif command == "help":
             print_help()
-
+        elif command == "exit":
+            exit(228)
         else:
             raise UnknownCommandException
 

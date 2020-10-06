@@ -106,7 +106,9 @@ class ServerMessenger(Thread):
                 else:
                     print(f"Transfer of {metadata} complete!!")
                     break
-        #TODO also close sockets??
+            con.close()
+        sock.close()
+
 
     @staticmethod
     def create(metadata):
@@ -162,7 +164,7 @@ class ServerMessenger(Thread):
         size = int(metaData[2])
 
         sock = socket.socket()
-        sleep(1.488)
+        sleep(0.1588)
         sock.connect((server, SIBLING_PORT))
 
         with open(filename, "wb") as f:

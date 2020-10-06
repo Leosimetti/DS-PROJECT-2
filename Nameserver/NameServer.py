@@ -12,7 +12,7 @@ DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
 
 # TODO CHECK 2
-REPLICAS = 1
+REPLICAS = 3
 
 ERR_MSG = "NO"
 B_ERR_MSG = b"NO"
@@ -197,7 +197,7 @@ class StorageDemon:
             for server in servers:
                 print(f"Send CREATE request to storage server with IP:{server}")
                 StorageServerMessageSockets[server].send(b"create" + B_DELIMITER + fileInfo.encode())
-                return
+            return
         # choose random servers to handle request
         servers = random.sample(StorageServers.keys(), REPLICAS)
         # add list of servers as containers of information about file
@@ -311,7 +311,7 @@ class StorageDemon:
         self.recursiveDelete(directory)
         headDirectory.removeFolder(directory)
         for serverSocket in StorageServerMessageSockets.values():
-            serverSocket.send(b"delDirectory" + path.encode())
+            serverSocket.send(b"deldir" + B_DELIMITER + path.encode())
 
     def recursiveDelete(self, folder: FolderNode):
         for subFolder in folder.folders:
@@ -368,6 +368,7 @@ class StorageDemon:
             serverReceiverSocket.send(b"serverReceive" + B_DELIMITER + serverSender.encode() + B_DELIMITER + file.encode())
             self.addFileToServer(serverReceiver, file)
             file.addContainer(serverReceiver)
+            sleep(0.1488)
         # Delete server from list of servers in demon
         del self.serversFiles[serverIP]
 
@@ -393,10 +394,10 @@ class HeartListener(Thread):
         self.demon = storageDemon
 
     def close(self):
+        print(f"Storage server {self.name}(IP:{self.ip}) disconnected.")
         self.demon.handleServerClose(self.ip)
         del StorageServers[self.ip]
         del StorageServerMessageSockets[self.ip]
-        print(f"Storage server {self.name}(IP:{self.ip}) disconnected.")
 
         self.sock.close()
 
