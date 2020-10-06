@@ -346,11 +346,15 @@ class StorageDemon:
     def handleServerClose(self, serverIP: str):
         # Get information about all files that were on that server
         files = self.serversFiles[serverIP]
+        print(f"ServerIP of disconnected server: {serverIP}")
         for file in files:
+            print(f"FileInfo: {file}")
             # Find available servers to save information
             availableStorageServers = [*StorageServers]
+            print(f"Available SS: {availableStorageServers}")
             for SS in file.storageServers:
                 availableStorageServers.remove(SS)
+            print(f"Available SS: {availableStorageServers}")
             # Delete information about storage server from fileInfo
             file.deleteContainer(serverIP)
             # Find server with file and server that can receive new replica
