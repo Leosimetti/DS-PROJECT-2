@@ -243,7 +243,7 @@ class Client():
         if response == ERR_MSG:
             print(f"File {src} does not exist")
         elif response == CONFIRM_MSG:
-            print("File successfully copied")
+            print("File successfully deleted")
 
     # Move file from src to dest
     def move(self, src, dest):
@@ -373,8 +373,10 @@ class Client():
         
         elif command == "help":
             print_help()
+
         elif command == "exit":
             exit(228)
+            
         else:
             raise UnknownCommandException
 
