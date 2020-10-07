@@ -32,7 +32,7 @@ class Client:
         # Establish connection
         nameServerMessengerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         nameServerMessengerSocket.connect((nameServerIP, CLIENT_MESSAGE_PORT))
-
+        # Set class fields
         self.soc = nameServerMessengerSocket
         self.curDir = "/"
 
@@ -454,7 +454,7 @@ def main():
     client = Client()
 
     while True:
-        command = input("->")
+        command = input(f"Client:{client.curDir}$ ")
         try:
             client.parseCommand(command)
         except UnknownCommandException:
