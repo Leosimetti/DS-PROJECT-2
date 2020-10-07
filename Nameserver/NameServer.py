@@ -11,6 +11,7 @@ SERVER_MESSAGE_PORT = 5003
 DELIMITER = "?CON?"
 B_DELIMITER = b"?CON?"
 
+# TODO CHANGE
 REPLICAS = 1
 
 ERR_MSG = "NO"
@@ -31,7 +32,6 @@ class FilesTree:
         self.root = FolderNode("root", None)
 
     def getFolderByPath(self, path: str):
-        # TODO CHECK
         path = path.split("/")
         currentDir = self.root
         for directory in path:

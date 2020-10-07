@@ -58,7 +58,6 @@ class Client:
                 continue
 
     # Wait for response and, possibly, abort execution if it takes too long
-    # TODO does not handle buffer overflow
     def getResponse(self, sock):
         failed_attempts = 0
         while True:
@@ -341,7 +340,6 @@ class Client:
     def parseCommand(self, command):
         try:
             command = command.split()
-
             args = command[1:]
             command = command[0]
         except IndexError:
@@ -390,7 +388,7 @@ class Client:
             print_help()
 
         elif command == "exit":
-            exit(228)
+            exit(0)
             
         else:
             raise UnknownCommandException
@@ -438,11 +436,11 @@ def print_help():
 
     print("mkdir\tCreate a new directory")
     print("\tUsage: make_directory/mkdir dirname")
-    print("dirname - name of directory to be created\n")
+    print("\tdirname - name of directory to be created\n")
 
     print("del_dir\tDelete directory. If the directory contains files, asks for confirmation before deletion")
     print("\tUsage: delete_directory/del_dir/deldir dirname")
-    print("dirname - name of directory to be deleted\n")
+    print("\tdirname - name of directory to be deleted\n")
 
 def main():
     # In case user only querried help, do not execute anything else
@@ -450,7 +448,8 @@ def main():
         if sys.argv[1] in ["--help", "-h"]:
             print_help()
             return 0
-    print("For help, run this with --help (-h) argument")
+    print("For help, run this with --help (-h) argument or use 'help' command")
+    print("Use 'exit' command to stop the client application")
 
     client = Client()
 
@@ -459,12 +458,10 @@ def main():
         try:
             client.parseCommand(command)
         except UnknownCommandException:
-            print(f"NO SUCH COMMAND: {command} , you IDIOT FUCK YOU BITCH")
+            print(f"No such command: {command}, check help to get list of available commands")
             continue
         except IndexError:
             print("Provide more arguments")
-        # nameServerMessengerSocket.send(b"Hello")
-        # sleep(3)
 
 
 if __name__ == '__main__':

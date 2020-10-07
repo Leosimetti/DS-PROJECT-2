@@ -26,8 +26,10 @@ class Heart(Thread):
             self.sock.send("ALIVE".encode())
             sleep(3)
 
+
 def correctPath(name):
     return name.replace("/", '∫%&FOLD&%∫')
+
 
 class ServerMessenger(Thread):
     def __init__(self, sock: socket.socket):
@@ -35,20 +37,17 @@ class ServerMessenger(Thread):
         print("Messaging connection established")
         self.sock = sock
 
-
-
     def init(self):
         shutil.rmtree(os.getcwd() + "/DFS")
         os.mkdir("DFS")
 
         free_space = shutil.disk_usage(os.getcwd())[2]
         self.sock.send("FREE".encode() + B_DELIMITER + str(free_space).encode())
-        print(f"Available space: {free_space//1024//1024//8} Mb")
+        print(f"Available space: {free_space // 1024 // 1024 // 8} Mb")
 
     def read(self, metadata):
         print(f"send {metadata}")
-
-        filename = metadata[2] + metadata[0]  # TODO may cause bugs
+        filename = metadata[2] + metadata[0]
         filename = correctPath(filename)
         filename = "./DFS/" + os.path.basename(filename)
         filesize = int(metadata[1])
@@ -80,13 +79,12 @@ class ServerMessenger(Thread):
                     print("Transfer complete!!")
                     break
 
-        #TODO also close sockets??
-
+        sock.close()
         pass
 
     def write(self, metadata, PORT):
         print(f"rcv {metadata}")
-        filename = metadata[2] + metadata[0]  # TODO may cause bugs
+        filename = metadata[2] + metadata[0]
         filename = correctPath(filename)
         filename = "./DFS/" + os.path.basename(filename)
         filesize = int(metadata[1])
@@ -114,10 +112,9 @@ class ServerMessenger(Thread):
             con.close()
         sock.close()
 
-
     @staticmethod
     def create(metadata):
-        filename = metadata[2] + metadata[0] # TODO may cause bugs
+        filename = metadata[2] + metadata[0]
         filename = correctPath(filename)
         print(f"create {filename}")
         filename = "./DFS/" + os.path.basename(filename)
@@ -127,7 +124,7 @@ class ServerMessenger(Thread):
     @staticmethod
     def delete(metadata):
         print(f"del {metadata}")
-        filename = metadata[2] + metadata[0]  # TODO may cause bugs
+        filename = metadata[2] + metadata[0]
         filename = correctPath(filename)
         filename = "./DFS/" + os.path.basename(filename)
         os.remove(filename)
@@ -146,11 +143,11 @@ class ServerMessenger(Thread):
 
     @staticmethod
     def copy(metaData):
-        filename = metaData[2] + metaData[0]  # TODO may cause bugs
+        filename = metaData[2] + metaData[0]
         filename = correctPath(filename)
         filename = "./DFS/" + os.path.basename(filename)
         print(filename)
-        newName = metaData[5] + metaData[3]  # TODO may cause bugs
+        newName = metaData[5] + metaData[3]
         newName = correctPath(newName)
         newName = "./DFS/" + os.path.basename(newName)
         print(newName)
@@ -181,7 +178,7 @@ class ServerMessenger(Thread):
         print(f" Sharing {metaData[1:]} with {metaData[0]}")
 
         server = metaData[0]
-        filename = metaData[3] + metaData[1]  # TODO may cause bugs
+        filename = metaData[3] + metaData[1]
         filename = correctPath(filename)
         size = int(metaData[2])
 
@@ -197,8 +194,6 @@ class ServerMessenger(Thread):
                 else:
                     print("File download complete!!")
                     break
-
-
 
     def run(self):
         while True:
@@ -237,8 +232,6 @@ class ServerMessenger(Thread):
                 sleep(1)
 
 
-
-
 def findNameServer():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -260,7 +253,6 @@ def main():
         os.mkdir("DFS")
     except:
         pass
-
 
     # Find name server
     NameServerIP = findNameServer()
