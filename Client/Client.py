@@ -79,7 +79,10 @@ class Client:
     # Extract full path and filename from relative path
     def parsePath(self, path):
         full_path = self.getFullPath(path)
-        return os.path.split(full_path)
+        path, name = os.path.split(full_path)
+        if not path.endswith("/"):
+            path += "/"
+        return path, name
 
     # Convert relative path into full path
     def getFullPath(self, path):
@@ -219,7 +222,6 @@ class Client:
 
         response = self.getResponse(self.soc)
         if response is not None:
-            # TODO parse file info
             print(response)
 
     # Copy file from src to dest
@@ -238,7 +240,7 @@ class Client:
         if response == ERR_MSG:
             print(f"File {src} does not exist")
         elif response == CONFIRM_MSG:
-            print("File successfully deleted")
+            print("File successfully copied")
 
     # Move file from src to dest
     def move(self, src, dest):

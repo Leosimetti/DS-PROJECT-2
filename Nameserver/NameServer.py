@@ -302,6 +302,8 @@ class StorageDemon:
         # choose servers with such file
         servers = self.fileDict[fileInfo.fileLocation()].storageServers
         newFileInfo.addContainers(servers)
+        trueFileSize = self.fileDict[fileInfo.fileLocation()].fileSize
+        newFileInfo.fileSize = trueFileSize
         self.fileTree.getFolderByPath(newFileInfo.filePath).addFile(newFileInfo)
         self.fileDict[newFileInfo.fileLocation()] = newFileInfo
         for server in servers:

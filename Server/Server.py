@@ -139,20 +139,25 @@ class ServerMessenger(Thread):
             if file.startswith(sacrifice_mark):
                 print(f"Removing file {file}")
                 try:
-                    os.remove(file)
+                    os.remove("./DFS/" + file)
                 except:
                     print(f"Unlucky; no {file}")
                     pass
 
     @staticmethod
     def copy(metaData):
-        filename = metaData[2] + metaData[0] # TODO may cause bugs
+        filename = metaData[2] + metaData[0]  # TODO may cause bugs
         filename = correctPath(filename)
-        newName = metaData[5] + metaData[3] # TODO may cause bugs
+        filename = "./DFS/" + os.path.basename(filename)
+        print(filename)
+        newName = metaData[5] + metaData[3]  # TODO may cause bugs
         newName = correctPath(newName)
+        newName = "./DFS/" + os.path.basename(newName)
+        print(newName)
+        print(os.path.basename(filename))
 
-        if os.path.exists(os.path.basename(filename)):
-            original_name = os.path.basename(filename)
+        if os.path.exists(filename):
+            original_name = filename
             # add 'copy' part
             while os.path.isfile(newName):
                 try:
