@@ -58,7 +58,21 @@ You can use `help` command in the client CLI to get list of available commands.
 
 **<u>5005</u> : Replication between StorageServers**
 
-​		Usage: Send files from one of StorageServers to another when server failure occures
+​		Usage: Send files from one of StorageServers to another when server failure occurs
+
+#### Communication messages:
+
+All details about communication messages : [[link]](https://docs.google.com/spreadsheets/d/1wfZ-HVIMUxCe-5NDjI15huDx1ye0SksVHZwvQx1hjPs/edit?usp=sharing)
+
+Short description: 
+
+All hosts send type of request and required information about the file or folder separated by predefined delimiter. 
+
+For example:  to get information about file, client send message with request type "info",  file name and file path.
+
+In addition, there are predefined  confirmation and error messages that help determine whether request is invalid.
+
+For example: if client want read file that not exist on servers, nameserver send error message to client.
 
 # Provable contribution of each team member
 #### Team members and main tasks:
