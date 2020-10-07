@@ -1,20 +1,26 @@
 version: '3'
 services:
     server:
-        build:
-            context: ./Server
-            dockerfile: Dockerfile
+#        build:
+#            context: ./Server
+#            dockerfile: Dockerfile
+        image:
+            leosimonetti/ds_2_project:storage_server
         depends_on:
             - nameserver
         deploy:
             replicas: 5
     nameserver:
-        build:
-            context: ./Nameserver
-            dockerfile: Dockerfile
+        image:
+            leosimonetti/ds_2_project:name_server
+#        build:
+#            context: ./Nameserver
+#            dockerfile: Dockerfile
     client:
-        build:
-            context: ./Client
-            dockerfile: Dockerfile
+        image:
+            leosimonetti/ds_2_project:client
+#        build:
+#            context: ./Client
+#            dockerfile: Dockerfile
         depends_on:
             - server
