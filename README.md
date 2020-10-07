@@ -66,13 +66,13 @@ All details about communication messages : [[link]](https://docs.google.com/spre
 
 Short description: 
 
-All hosts send type of request and required information about the file or folder separated by predefined delimiter. 
+All hosts send type of request and required information about the file or folder separated by a predefined delimiter. 
 
-For example:  to get information about file, client send message with request type "info",  file name and file path.
+For example:  to get information about a file, client sends message with request type "info",  file name and file path.
 
-In addition, there are predefined  confirmation and error messages that help determine whether request is invalid.
+In addition, there are predefined confirmation and error messages that help to determine whether request is invalid.
 
-For example: if client want read file that not exist on servers, nameserver send error message to client.
+For example: if client wants to read a file that does not exist on servers, nameserver sends error message to client.
 
 # Provable contribution of each team member
 #### Team members and main tasks:
