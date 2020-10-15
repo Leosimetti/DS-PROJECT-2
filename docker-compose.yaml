@@ -1,9 +1,7 @@
 version: '3'
 services:
     server:
-#        build:
-#            context: ./Server
-#            dockerfile: Dockerfile
+
         image:
             leosimonetti/ds_2_project:storage_server
         depends_on:
@@ -13,14 +11,8 @@ services:
     nameserver:
         image:
             leosimonetti/ds_2_project:name_server
-#        build:
-#            context: ./Nameserver
-#            dockerfile: Dockerfile
     client:
         image:
             leosimonetti/ds_2_project:client
-#        build:
-#            context: ./Client
-#            dockerfile: Dockerfile
         depends_on:
             - server

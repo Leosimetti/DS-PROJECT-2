@@ -236,7 +236,7 @@ def findNameServer():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    s.sendto(b'Storage server try to find name server', ('<broadcast>', SERVER_WELCOME_PORT))
+    s.sendto(b'Storage server try to find name server', ('10.242.255.255', SERVER_WELCOME_PORT))
     data, addr = s.recvfrom(1024)
     print(f'Name server found: {addr}')
     return addr[0]
